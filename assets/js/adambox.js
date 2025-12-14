@@ -24,11 +24,11 @@
 	}
 
 	function getName() {
-		return sessionStorage.getItem(NAME_KEY) || '';
+		return localStorage.getItem(NAME_KEY) || '';
 	}
 
 	function setName(name) {
-		sessionStorage.setItem(NAME_KEY, name);
+		localStorage.setItem(NAME_KEY, name);
 	}
 
 	function escapeText(s) {
