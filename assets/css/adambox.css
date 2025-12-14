@@ -1,215 +1,428 @@
 /* AdamBox Frontend Styles (0.3.0 ALPHA)
  * File: assets/css/adambox.css
+ * Modern SaaS Design System
  */
+
+:root {
+	--adambox-primary: #00d9ff;
+	--adambox-primary-dark: #00b8d9;
+	--adambox-secondary: #9333ea;
+	--adambox-gradient: linear-gradient(135deg, #00d9ff 0%, #9333ea 100%);
+	--adambox-gradient-hover: linear-gradient(135deg, #00b8d9 0%, #7c3aed 100%);
+	--adambox-bg-dark: #0f0f23;
+	--adambox-bg-card: rgba(255, 255, 255, 0.05);
+	--adambox-border: rgba(255, 255, 255, 0.1);
+	--adambox-text: #ffffff;
+	--adambox-text-muted: rgba(255, 255, 255, 0.6);
+	--adambox-shadow: 0 8px 32px rgba(0, 217, 255, 0.15);
+	--adambox-shadow-lg: 0 20px 60px rgba(0, 217, 255, 0.25);
+}
 
 .adambox {
 	box-sizing: border-box;
 	max-width: 640px;
 	margin: 1.5em auto;
-	border: 1px solid #dcdcde;
-	border-radius: 6px;
-	background: #ffffff;
+	border: 1px solid var(--adambox-border);
+	border-radius: 16px;
+	background: var(--adambox-bg-dark);
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
 		Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
-	color: #1e1e1e;
+	color: var(--adambox-text);
 	position: relative;
+	overflow: hidden;
+	box-shadow: var(--adambox-shadow);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+}
+
+/* Subtle animated gradient border effect */
+.adambox::before {
+	content: '';
+	position: absolute;
+	inset: -2px;
+	background: var(--adambox-gradient);
+	border-radius: 17px;
+	opacity: 0.3;
+	z-index: -1;
+	animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%, 100% { opacity: 0.3; }
+	50% { opacity: 0.5; }
 }
 
 .adambox__header {
-	padding: 0.75em 1em;
-	border-bottom: 1px solid #dcdcde;
-	background: #f6f7f7;
+	padding: 1em 1.25em;
+	border-bottom: 1px solid var(--adambox-border);
+	background: var(--adambox-bg-card);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
 }
 
 .adambox__title {
-	font-size: 0.95rem;
-	font-weight: 600;
+	font-size: 1.1rem;
+	font-weight: 700;
 	margin: 0;
+	background: var(--adambox-gradient);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	letter-spacing: -0.02em;
 }
 
 .adambox__subtitle {
-	font-size: 0.75rem;
-	color: #646970;
-	margin-top: 0.2em;
+	font-size: 0.8rem;
+	color: var(--adambox-text-muted);
+	margin-top: 0.3em;
+	font-weight: 500;
 }
 
 .adambox__body {
 	padding: 0;
+	background: rgba(15, 15, 35, 0.5);
 }
 
 .adambox__messages {
-	max-height: 280px;
+	max-height: 320px;
 	overflow-y: auto;
-	padding: 1em;
+	padding: 1.25em;
 	display: flex;
 	flex-direction: column;
-	gap: 0.5em;
+	gap: 0.75em;
 	scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+.adambox__messages::-webkit-scrollbar {
+	width: 6px;
+}
+
+.adambox__messages::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0.03);
+	border-radius: 10px;
+}
+
+.adambox__messages::-webkit-scrollbar-thumb {
+	background: var(--adambox-gradient);
+	border-radius: 10px;
+}
+
+.adambox__messages::-webkit-scrollbar-thumb:hover {
+	background: var(--adambox-gradient-hover);
 }
 
 /* Messages */
 .adambox__message {
-	max-width: 90%;
-	padding: 0.45em 0.65em;
-	border-radius: 4px;
-	font-size: 0.85rem;
-	line-height: 1.4;
+	max-width: 85%;
+	padding: 0.75em 1em;
+	border-radius: 12px;
+	font-size: 0.9rem;
+	line-height: 1.5;
 	word-wrap: break-word;
+	position: relative;
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* User message */
+.adambox__message:hover {
+	transform: translateY(-2px);
+}
+
+/* User message - glassmorphic with gradient */
 .adambox__message--user {
 	align-self: flex-end;
-	background: #2271b1;
-	color: #ffffff;
+	background: linear-gradient(135deg, 
+		rgba(0, 217, 255, 0.15) 0%, 
+		rgba(147, 51, 234, 0.15) 100%);
+	border: 1px solid rgba(0, 217, 255, 0.3);
+	color: var(--adambox-text);
+	box-shadow: 0 4px 16px rgba(0, 217, 255, 0.1);
 }
 
 /* User name + text layout */
 .adambox__message--user .adambox__meta {
-	font-size: 0.72rem;
+	font-size: 0.75rem;
 	font-weight: 600;
-	opacity: 0.9;
-	margin-bottom: 0.15em;
+	color: var(--adambox-primary);
+	margin-bottom: 0.25em;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 }
 
 .adambox__message--user .adambox__text {
-	font-size: 0.85rem;
+	font-size: 0.9rem;
+	color: var(--adambox-text);
 }
 
-/* System / moderator message */
+/* System / moderator message - glassmorphic neutral */
 .adambox__message--system {
 	align-self: flex-start;
-	background: #f0f0f1;
-	color: #2c3338;
-	border-left: 3px solid #8c8f94;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	color: var(--adambox-text);
+	border-left: 3px solid var(--adambox-primary);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 /* Composer */
 .adambox__composer {
 	display: flex;
-	gap: 0.5em;
-	padding: 0.75em;
-	border-top: 1px solid #dcdcde;
-	background: #ffffff;
+	gap: 0.75em;
+	padding: 1em 1.25em;
+	border-top: 1px solid var(--adambox-border);
+	background: var(--adambox-bg-card);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
 }
 
 .adambox__input {
 	flex: 1;
-	padding: 0.45em 0.6em;
-	font-size: 0.85rem;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
+	padding: 0.65em 0.85em;
+	font-size: 0.9rem;
+	border: 1px solid var(--adambox-border);
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--adambox-text);
+	transition: all 0.3s ease;
+}
+
+.adambox__input::placeholder {
+	color: var(--adambox-text-muted);
 }
 
 .adambox__input:focus {
 	outline: none;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--adambox-primary);
+	box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1),
+				0 4px 16px rgba(0, 217, 255, 0.2);
+	background: rgba(255, 255, 255, 0.08);
 }
 
 .adambox__send {
-	padding: 0.45em 0.9em;
-	font-size: 0.85rem;
-	border-radius: 4px;
-	border: 1px solid #2271b1;
-	background: #2271b1;
-	color: #ffffff;
+	padding: 0.65em 1.5em;
+	font-size: 0.9rem;
+	font-weight: 600;
+	border-radius: 10px;
+	border: none;
+	background: var(--adambox-gradient);
+	color: var(--adambox-text);
 	cursor: pointer;
 	white-space: nowrap;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 }
 
 .adambox__send:hover {
-	background: #135e96;
-	border-color: #135e96;
+	background: var(--adambox-gradient-hover);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
+}
+
+.adambox__send:active {
+	transform: translateY(0);
 }
 
 .adambox__send:disabled,
 .adambox__input:disabled {
-	opacity: 0.6;
+	opacity: 0.4;
 	cursor: not-allowed;
+	transform: none;
 }
 
 /* Join overlay */
 .adambox__overlay {
 	position: absolute;
 	inset: 0;
-	background: rgba(0, 0, 0, 0.45);
+	background: rgba(15, 15, 35, 0.85);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 1em;
 	z-index: 9999;
+	animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 .adambox__modal {
 	width: 100%;
 	max-width: 420px;
-	background: #ffffff;
-	border: 1px solid #dcdcde;
-	border-radius: 8px;
-	padding: 1em;
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+	background: rgba(15, 15, 35, 0.95);
+	border: 1px solid var(--adambox-border);
+	border-radius: 16px;
+	padding: 2em;
+	box-shadow: var(--adambox-shadow-lg);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	animation: slideUp 0.4s ease;
+	position: relative;
+	overflow: hidden;
+}
+
+/* Modal gradient accent */
+.adambox__modal::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: var(--adambox-gradient);
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .adambox__modalTitle {
-	font-size: 1rem;
+	font-size: 1.3rem;
 	font-weight: 700;
 	margin-bottom: 0.5em;
+	background: var(--adambox-gradient);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	letter-spacing: -0.02em;
 }
 
 .adambox__modalText {
-	font-size: 0.85rem;
-	color: #3c434a;
-	margin-bottom: 0.75em;
+	font-size: 0.9rem;
+	color: var(--adambox-text-muted);
+	margin-bottom: 1.25em;
+	line-height: 1.6;
 }
 
 .adambox__nameInput {
 	width: 100%;
 	box-sizing: border-box;
-	padding: 0.55em 0.6em;
-	font-size: 0.9rem;
-	border: 1px solid #c3c4c7;
-	border-radius: 6px;
+	padding: 0.75em 1em;
+	font-size: 0.95rem;
+	border: 1px solid var(--adambox-border);
+	border-radius: 10px;
 	margin-bottom: 0.5em;
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--adambox-text);
+	transition: all 0.3s ease;
+}
+
+.adambox__nameInput::placeholder {
+	color: var(--adambox-text-muted);
 }
 
 .adambox__nameInput:focus {
 	outline: none;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--adambox-primary);
+	box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1),
+				0 4px 16px rgba(0, 217, 255, 0.2);
+	background: rgba(255, 255, 255, 0.08);
 }
 
 .adambox__modalError {
 	min-height: 1.2em;
-	color: #b32d2e;
-	font-size: 0.82rem;
-	margin-bottom: 0.6em;
+	color: #ff4444;
+	font-size: 0.85rem;
+	margin-bottom: 1em;
+	font-weight: 500;
 }
 
 .adambox__joinBtn {
 	width: 100%;
-	padding: 0.6em 0.75em;
-	font-size: 0.9rem;
-	border-radius: 6px;
-	border: 1px solid #2271b1;
-	background: #2271b1;
-	color: #ffffff;
+	padding: 0.85em 1em;
+	font-size: 0.95rem;
+	font-weight: 600;
+	border-radius: 10px;
+	border: none;
+	background: var(--adambox-gradient);
+	color: var(--adambox-text);
 	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 16px rgba(0, 217, 255, 0.3);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
 }
 
 .adambox__joinBtn:hover {
-	background: #135e96;
-	border-color: #135e96;
+	background: var(--adambox-gradient-hover);
+	transform: translateY(-2px);
+	box-shadow: 0 6px 24px rgba(0, 217, 255, 0.4);
 }
 
+.adambox__joinBtn:active {
+	transform: translateY(0);
+}
+
+/* Loading state animation */
+@keyframes shimmer {
+	0% { background-position: -1000px 0; }
+	100% { background-position: 1000px 0; }
+}
+
+.adambox__message--loading {
+	background: linear-gradient(
+		90deg,
+		rgba(255, 255, 255, 0.05) 0%,
+		rgba(255, 255, 255, 0.1) 50%,
+		rgba(255, 255, 255, 0.05) 100%
+	);
+	background-size: 1000px 100%;
+	animation: shimmer 2s infinite;
+}
+
+/* Responsive adjustments */
 @media (max-width: 480px) {
 	.adambox {
 		margin: 1em;
+		border-radius: 12px;
 	}
+	
 	.adambox__messages {
-		max-height: 220px;
+		max-height: 240px;
+		padding: 1em;
 	}
+	
 	.adambox__message {
-		max-width: 100%;
+		max-width: 90%;
+	}
+	
+	.adambox__composer {
+		padding: 0.75em 1em;
+		gap: 0.5em;
+	}
+	
+	.adambox__input {
+		font-size: 0.85rem;
+	}
+	
+	.adambox__send {
+		padding: 0.65em 1.2em;
+		font-size: 0.85rem;
+	}
+	
+	.adambox__modal {
+		padding: 1.5em;
+	}
+}
+
+/* Dark mode enhancement (if needed) */
+@media (prefers-color-scheme: dark) {
+	.adambox {
+		box-shadow: var(--adambox-shadow),
+					0 0 60px rgba(0, 217, 255, 0.05);
 	}
 }
