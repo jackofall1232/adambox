@@ -1,11 +1,11 @@
 === AdamBox ===
 Contributors: jackofall1232, Ask Adam
-Donate link: 
+Donate link:
 Tags: ai moderation, chat moderation, content moderation, ai safety, community tools
 Requires at least: 6.0
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: trunk
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -17,8 +17,10 @@ AdamBox is a **lightweight AI moderation box** for WordPress.
 
 It is designed to provide **calm, neutral, non-dominant AI moderation** for conversations embedded on a page — without acting as a chatbot, without storing user data, and without tracking identities.
 
-AdamBox is **not** a chat replacement.
+AdamBox is **not** a chat replacement.  
 It is an **AI moderator**, not a participant.
+
+**Note:** Current releases are **alpha versions** intended for testing and development use.
 
 ### Core Principles
 
@@ -32,18 +34,21 @@ It is an **AI moderator**, not a participant.
 
 ### What AdamBox Does
 
-- Renders a lightweight chat box via shortcode
-- Observes recent messages (session-based only)
-- Intervenes when moderation is needed
-- Optionally summarizes or guides conversations based on admin settings
+- Renders a lightweight chat interface via shortcode
+- Provides shared, per-page conversation visibility
+- Displays recent messages to participants for clarity
+- Applies rate limiting to prevent spam or flooding
+- Uses ephemeral display names for conversation clarity
+- Intervenes only when moderation is needed
 - Uses WordPress REST API and vanilla JavaScript only
 
 ### What AdamBox Does *Not* Do
 
 - No long-term memory
 - No learning from conversations
-- No user profiling or identity tracking
+- No user profiling or real identity tracking
 - No chat transcripts saved to the database
+- No analytics or third-party scripts
 - No feature gating in the free version
 
 AdamBox is built for site owners who want **responsible AI oversight** without sacrificing privacy or control.
@@ -58,104 +63,3 @@ AdamBox is built for site owners who want **responsible AI oversight** without s
 == Usage ==
 
 Insert the shortcode anywhere you want the moderation box to appear:
-[adambox]
-
-AdamBox will render a lightweight chat interface and operate entirely within the visitor’s session.
-
-No messages are saved to the database.
-
-== Settings ==
-
-AdamBox adds a settings page at:
-
-**Settings → AdamBox**
-
-Available options include:
-
-### API Configuration
-- Optional OpenAI API key
-- Stored securely using WordPress options
-
-### Moderation Controls
-- Moderation strictness:
-  - Low
-  - Medium (default)
-  - High
-- AI intervention level:
-  - Intervene only (default)
-  - Summarize when needed
-  - Actively guide
-
-These controls adjust **how and when** the AI moderator intervenes — not what users are allowed to say.
-
-== Privacy ==
-
-AdamBox is privacy-first by design.
-
-- No persistent user data
-- No chat logs stored
-- No cookies beyond session state (or localStorage fallback)
-- No analytics or tracking scripts
-- No third-party JavaScript frameworks
-
-Messages exist **only temporarily** for moderation context and are discarded automatically.
-
-== Frequently Asked Questions ==
-
-= Is AdamBox a chatbot? =
-
-No.  
-AdamBox is an **AI moderator**, not a conversational agent.
-
-= Does AdamBox store conversations? =
-
-No.  
-Messages are session-based only and never written to the database.
-
-= Does AdamBox track users? =
-
-No.  
-There is no user profiling, fingerprinting, or analytics.
-
-= Can I use AdamBox without an API key? =
-
-Yes.  
-The API key is optional. Without it, AdamBox can still render the interface and degrade gracefully.
-
-= Is there a Pro version? =
-
-AdamBox is fully functional as a free plugin.  
-The architecture allows for future extensions, but no features are gated or hidden in the free version.
-
-== Screenshots ==
-
-1. AdamBox moderation interface embedded on a page  
-2. AdamBox settings panel in WordPress admin  
-
-== Changelog ==
-
-= 0.1.0 =
-* Initial release
-* Plugin bootstrap and architecture
-* Shortcode rendering
-* Admin settings foundation
-* REST API scaffolding
-* WordPress.org compliance baseline
-
-= 0.2.0 =
-* Added per-page shared conversation context
-* Messages now visible to all visitors on the same page
-* Context stored ephemerally using WordPress transients
-* No user tracking or persistent storage
-
-== Upgrade Notice ==
-
-= 0.1.0 =
-Initial public release.
-
-
-== License ==
-
-This plugin is licensed under the GNU General Public License v3.0 or later.
-
-You are free to use, modify, and distribute this software under the terms of the GPL.
