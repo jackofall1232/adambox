@@ -5,7 +5,7 @@ Tags: ai moderation, chat moderation, content moderation, ai safety, community t
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -142,10 +142,17 @@ The architecture allows for future extensions, but no features are gated or hidd
 * REST API scaffolding
 * WordPress.org compliance baseline
 
+= 0.2.0 =
+* Added per-page shared conversation context
+* Messages now visible to all visitors on the same page
+* Context stored ephemerally using WordPress transients
+* No user tracking or persistent storage
+
 == Upgrade Notice ==
 
 = 0.1.0 =
 Initial public release.
+
 
 == License ==
 
