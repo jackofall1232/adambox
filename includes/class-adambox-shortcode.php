@@ -1,6 +1,6 @@
 <?php
 /**
- * Shortcode handler for AdamBox
+ * Shortcode handler for AdamBox (0.3.0 ALPHA)
  *
  * File: includes/class-adambox-shortcode.php
  *
@@ -13,17 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class AdamBox_Shortcode {
 
-	/**
-	 * Constructor
-	 */
 	public function __construct() {
 		add_shortcode( 'adambox', array( $this, 'render_shortcode' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
 	}
 
-	/**
-	 * Enqueue frontend assets only when shortcode exists on the page
-	 */
 	public function maybe_enqueue_assets() {
 
 		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
@@ -74,12 +68,6 @@ class AdamBox_Shortcode {
 		);
 	}
 
-	/**
-	 * Render the [adambox] shortcode
-	 *
-	 * @param array $atts Shortcode attributes.
-	 * @return string
-	 */
 	public function render_shortcode( $atts ) {
 
 		$atts = shortcode_atts(
@@ -110,12 +98,8 @@ class AdamBox_Shortcode {
 			data-post-id="<?php echo esc_attr( $post_id ); ?>"
 		>
 			<div class="adambox__header">
-				<div class="adambox__title">
-					<?php echo esc_html( $atts['title'] ); ?>
-				</div>
-				<div class="adambox__subtitle">
-					<?php esc_html_e( 'Shared conversation · session-based · no tracking', 'adambox' ); ?>
-				</div>
+				<div class="adambox__title"><?php echo esc_html( $atts['title'] ); ?></div>
+				<div class="adambox__subtitle"><?php esc_html_e( 'Shared conversation · no accounts · no tracking', 'adambox' ); ?></div>
 			</div>
 
 			<div class="adambox__body">
@@ -138,16 +122,15 @@ class AdamBox_Shortcode {
 					inputmode="text"
 					placeholder="<?php echo esc_attr( $atts['placeholder'] ); ?>"
 					maxlength="500"
-					required
+					disabled
 				/>
 
-				<button class="adambox__send" type="submit">
+				<button class="adambox__send" type="submit" disabled>
 					<?php echo esc_html( $atts['button'] ); ?>
 				</button>
 			</form>
 		</div>
 		<?php
-
 		return ob_get_clean();
 	}
 }
