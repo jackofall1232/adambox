@@ -18,13 +18,11 @@ class AdamBox_Shortcode {
 	 */
 	public function __construct() {
 		add_shortcode( 'adambox', array( $this, 'render_shortcode' ) );
-
-		// Only enqueue assets when the shortcode is actually present on the page.
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_assets' ) );
 	}
 
 	/**
-	 * Enqueue frontend assets only when shortcode exists in the current queried content.
+	 * Enqueue frontend assets only when shortcode exists on the page
 	 */
 	public function maybe_enqueue_assets() {
 
@@ -49,14 +47,14 @@ class AdamBox_Shortcode {
 		$css_path = ADAMBOX_PLUGIN_DIR . 'assets/css/adambox.css';
 		$js_path  = ADAMBOX_PLUGIN_DIR . 'assets/js/adambox.js';
 
-		wp_register_style(
+		wp_enqueue_style(
 			'adambox',
 			ADAMBOX_PLUGIN_URL . 'assets/css/adambox.css',
 			array(),
 			file_exists( $css_path ) ? filemtime( $css_path ) : ADAMBOX_VERSION
 		);
 
-		wp_register_script(
+		wp_enqueue_script(
 			'adambox',
 			ADAMBOX_PLUGIN_URL . 'assets/js/adambox.js',
 			array(),
@@ -64,25 +62,20 @@ class AdamBox_Shortcode {
 			true
 		);
 
-		// Provide base config to JS (REST comes later; this stays harmless).
 		wp_localize_script(
 			'adambox',
 			'AdamBoxConfig',
 			array(
-				'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-				'restUrl'  => esc_url_raw( rest_url( 'adambox/v1' ) ),
-				'nonce'    => wp_create_nonce( 'wp_rest' ),
-				'maxMsgs'  => 10,
-				'version'  => ADAMBOX_VERSION,
+				'restUrl' => esc_url_raw( rest_url( 'adambox/v1' ) ),
+				'nonce'   => wp_create_nonce( 'wp_rest' ),
+				'maxMsgs' => 10,
+				'version' => ADAMBOX_VERSION,
 			)
 		);
-
-		wp_enqueue_style( 'adambox' );
-		wp_enqueue_script( 'adambox' );
 	}
 
 	/**
-	 * Render the [adambox] shortcode.
+	 * Render the [adambox] shortcode
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string
@@ -99,7 +92,12 @@ class AdamBox_Shortcode {
 			'adambox'
 		);
 
-		$instance_id = 'adambox-' . wp_generate_uuid4();
+		$post_id = get_the_ID();
+		if ( ! $post_id ) {
+			return '';
+		}
+
+		$instance_id = 'adambox-' . $post_id;
 
 		ob_start();
 		?>
@@ -107,18 +105,23 @@ class AdamBox_Shortcode {
 			id="<?php echo esc_attr( $instance_id ); ?>"
 			class="adambox"
 			role="region"
-			aria-label="<?php echo esc_attr__( 'AdamBox moderation area', 'adambox' ); ?>"
+			aria-label="<?php esc_attr_e( 'AdamBox moderation area', 'adambox' ); ?>"
 			data-adambox="1"
+			data-post-id="<?php echo esc_attr( $post_id ); ?>"
 		>
 			<div class="adambox__header">
-				<div class="adambox__title"><?php echo esc_html( $atts['title'] ); ?></div>
-				<div class="adambox__subtitle"><?php esc_html_e( 'AI moderation (session-only). No tracking.', 'adambox' ); ?></div>
+				<div class="adambox__title">
+					<?php echo esc_html( $atts['title'] ); ?>
+				</div>
+				<div class="adambox__subtitle">
+					<?php esc_html_e( 'Shared conversation · session-based · no tracking', 'adambox' ); ?>
+				</div>
 			</div>
 
 			<div class="adambox__body">
 				<div class="adambox__messages" aria-live="polite" aria-relevant="additions text">
 					<div class="adambox__message adambox__message--system">
-						<?php esc_html_e( 'AdamBox is ready. Messages are session-based and not stored.', 'adambox' ); ?>
+						<?php esc_html_e( 'Loading conversation…', 'adambox' ); ?>
 					</div>
 				</div>
 			</div>
@@ -135,6 +138,7 @@ class AdamBox_Shortcode {
 					inputmode="text"
 					placeholder="<?php echo esc_attr( $atts['placeholder'] ); ?>"
 					maxlength="500"
+					required
 				/>
 
 				<button class="adambox__send" type="submit">
@@ -143,6 +147,7 @@ class AdamBox_Shortcode {
 			</form>
 		</div>
 		<?php
+
 		return ob_get_clean();
 	}
 }
