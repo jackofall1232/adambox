@@ -7,43 +7,16 @@
 		return;
 	}
 
-	const MAX_MESSAGES = parseInt(AdamBoxConfig.maxMsgs, 10) || 10;
-	const REST_URL = AdamBoxConfig.restUrl.replace(/\/$/, '') + '/message';
+	const REST_BASE = AdamBoxConfig.restUrl.replace(/\/$/, '');
 	const NONCE = AdamBoxConfig.nonce;
+	const MAX_MESSAGES = parseInt(AdamBoxConfig.maxMsgs, 10) || 10;
 
 	/**
-	 * Utilities
+	 * Helpers
 	 */
-	function getSessionKey(instanceId) {
-		return 'adambox_session_' + instanceId;
-	}
-
-	function loadContext(instanceId) {
-		try {
-			const raw = localStorage.getItem(getSessionKey(instanceId));
-			const parsed = JSON.parse(raw);
-			return Array.isArray(parsed) ? parsed : [];
-		} catch (e) {
-			return [];
-		}
-	}
-
-	function saveContext(instanceId, context) {
-		try {
-			localStorage.setItem(
-				getSessionKey(instanceId),
-				JSON.stringify(context.slice(-MAX_MESSAGES))
-			);
-		} catch (e) {
-			// localStorage may be unavailable; fail silently
-		}
-	}
-
 	function addMessage(container, role, text) {
 		const messages = container.querySelector('.adambox__messages');
-		if (!messages) {
-			return;
-		}
+		if (!messages) return;
 
 		const div = document.createElement('div');
 		div.className = 'adambox__message adambox__message--' + role;
@@ -51,6 +24,13 @@
 
 		messages.appendChild(div);
 		messages.scrollTop = messages.scrollHeight;
+	}
+
+	function clearMessages(container) {
+		const messages = container.querySelector('.adambox__messages');
+		if (messages) {
+			messages.innerHTML = '';
+		}
 	}
 
 	function setSending(form, sending) {
@@ -61,69 +41,85 @@
 		if (button) button.disabled = sending;
 	}
 
+	function fetchContext(container, postId) {
+		fetch(`${REST_BASE}/context?post_id=${postId}`, {
+			method: 'GET',
+			headers: {
+				'X-WP-Nonce': NONCE
+			}
+		})
+			.then(function (res) {
+				if (!res.ok) throw new Error('Context fetch failed');
+				return res.json();
+			})
+			.then(function (data) {
+				if (!data || !Array.isArray(data.context)) return;
+
+				clearMessages(container);
+
+				data.context.slice(-MAX_MESSAGES).forEach(function (item) {
+					addMessage(container, item.role, item.content);
+				});
+			})
+			.catch(function () {
+				addMessage(
+					container,
+					'system',
+					'Unable to load conversation context.'
+				);
+			});
+	}
+
 	/**
-	 * Initialize each AdamBox instance
+	 * Init a single AdamBox
 	 */
 	function initAdamBox(container) {
-		const instanceId = container.id;
 		const form = container.querySelector('.adambox__composer');
 		const input = container.querySelector('.adambox__input');
+		const postId = container.getAttribute('data-post-id');
 
-		if (!form || !input) {
+		if (!form || !input || !postId) {
 			return;
 		}
 
-		let context = loadContext(instanceId);
+		// Load shared context on page load
+		fetchContext(container, postId);
 
 		form.addEventListener('submit', function (e) {
 			e.preventDefault();
 
 			const message = input.value.trim();
-			if (!message) {
-				return;
-			}
+			if (!message) return;
 
 			addMessage(container, 'user', message);
 			input.value = '';
 			setSending(form, true);
 
-			context.push({
-				role: 'user',
-				content: message
-			});
-			context = context.slice(-MAX_MESSAGES);
-			saveContext(instanceId, context);
-
-			fetch(REST_URL, {
+			fetch(`${REST_BASE}/message`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					'X-WP-Nonce': NONCE
 				},
 				body: JSON.stringify({
-					message: message,
-					context: context
+					post_id: postId,
+					message: message
 				})
 			})
-				.then(function (response) {
-					if (!response.ok) {
-						throw new Error('Request failed');
-					}
-					return response.json();
+				.then(function (res) {
+					if (!res.ok) throw new Error('Message failed');
+					return res.json();
 				})
 				.then(function (data) {
-					if (!data || !data.success) {
+					if (!data || !data.success || !Array.isArray(data.context)) {
 						throw new Error('Invalid response');
 					}
 
-					if (data.message) {
-						addMessage(container, 'system', data.message);
-					}
+					clearMessages(container);
 
-					if (Array.isArray(data.context)) {
-						context = data.context.slice(-MAX_MESSAGES);
-						saveContext(instanceId, context);
-					}
+					data.context.slice(-MAX_MESSAGES).forEach(function (item) {
+						addMessage(container, item.role, item.content);
+					});
 				})
 				.catch(function () {
 					addMessage(
@@ -143,9 +139,7 @@
 	 */
 	document.addEventListener('DOMContentLoaded', function () {
 		const boxes = document.querySelectorAll('[data-adambox="1"]');
-		if (!boxes.length) {
-			return;
-		}
+		if (!boxes.length) return;
 
 		boxes.forEach(function (box) {
 			initAdamBox(box);
