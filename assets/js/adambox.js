@@ -74,10 +74,17 @@
 		if (btn) btn.disabled = sending;
 	}
 
+	// ✅ FIXED: cache-busting + mobile-safe fetch
 	function fetchContext(postId) {
-		return fetch(`${REST_BASE}/context?post_id=${postId}`, {
+		const cacheBust = Date.now();
+
+		return fetch(`${REST_BASE}/context?post_id=${postId}&_=${cacheBust}`, {
 			method: 'GET',
-			headers: { 'X-WP-Nonce': NONCE }
+			cache: 'no-store',
+			headers: {
+				'X-WP-Nonce': NONCE,
+				'Cache-Control': 'no-store'
+			}
 		}).then(res => {
 			if (!res.ok) throw new Error('Context fetch failed');
 			return res.json();
