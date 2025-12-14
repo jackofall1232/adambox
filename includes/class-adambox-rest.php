@@ -19,14 +19,16 @@ class AdamBox_REST {
 	const NAMESPACE = 'adambox/v1';
 
 	/**
-	 * REST route
+	 * Routes
 	 */
-	const ROUTE = '/message';
+	const ROUTE_MESSAGE = '/message';
+	const ROUTE_CONTEXT = '/context';
 
 	/**
-	 * Max messages kept in session window
+	 * Limits
 	 */
 	const MAX_MESSAGES = 10;
+	const TRANSIENT_TTL = 1800; // 30 minutes
 
 	/**
 	 * Constructor
@@ -40,21 +42,39 @@ class AdamBox_REST {
 	 */
 	public function register_routes() {
 
+		// Fetch current shared context
 		register_rest_route(
 			self::NAMESPACE,
-			self::ROUTE,
+			self::ROUTE_CONTEXT,
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_context' ),
+				'permission_callback' => array( $this, 'permissions_check' ),
+				'args'                => array(
+					'post_id' => array(
+						'type'     => 'integer',
+						'required' => true,
+					),
+				),
+			)
+		);
+
+		// Submit a message
+		register_rest_route(
+			self::NAMESPACE,
+			self::ROUTE_MESSAGE,
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'handle_message' ),
 				'permission_callback' => array( $this, 'permissions_check' ),
 				'args'                => array(
+					'post_id' => array(
+						'type'     => 'integer',
+						'required' => true,
+					),
 					'message' => array(
 						'type'     => 'string',
 						'required' => true,
-					),
-					'context' => array(
-						'type'     => 'array',
-						'required' => false,
 					),
 				),
 			)
@@ -62,102 +82,37 @@ class AdamBox_REST {
 	}
 
 	/**
-	 * Permissions check for REST requests
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return bool
+	 * Permissions check
 	 */
-	public function permissions_check( $request ) {
-
+	public function permissions_check( WP_REST_Request $request ) {
 		$nonce = $request->get_header( 'X-WP-Nonce' );
-		if ( ! $nonce ) {
-			return false;
-		}
-
-		return wp_verify_nonce( $nonce, 'wp_rest' );
+		return $nonce && wp_verify_nonce( $nonce, 'wp_rest' );
 	}
 
 	/**
-	 * Handle incoming message
-	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response
+	 * Build transient key for a page
 	 */
-	public function handle_message( WP_REST_Request $request ) {
+	protected function get_transient_key( $post_id ) {
+		return 'adambox_context_post_' . absint( $post_id );
+	}
 
-		$message = trim( wp_strip_all_tags( $request->get_param( 'message' ) ) );
-		if ( $message === '' ) {
-			return new WP_REST_Response(
-				array(
-					'success' => false,
-					'error'   => __( 'Empty message.', 'adambox' ),
-				),
-				400
-			);
+	/**
+	 * Fetch shared context
+	 */
+	public function get_context( WP_REST_Request $request ) {
+
+		$post_id = absint( $request->get_param( 'post_id' ) );
+		if ( ! $post_id ) {
+			return new WP_REST_Response( array( 'context' => array() ), 200 );
 		}
 
-		$context = $request->get_param( 'context' );
+		$context = get_transient( $this->get_transient_key( $post_id ) );
 		if ( ! is_array( $context ) ) {
 			$context = array();
 		}
 
-		// Enforce message window size
-		$context = array_slice( $context, - self::MAX_MESSAGES );
-
-		// Append current user message
-		$context[] = array(
-			'role'    => 'user',
-			'content' => $message,
-		);
-
-		// Fetch settings
-		$strictness  = AdamBox_Settings::moderation_strictness();
-		$intervene   = AdamBox_Settings::intervention_level();
-		$has_api_key = AdamBox_Settings::has_api_key();
-
-		/**
-		 * If no API key is set, degrade gracefully.
-		 * We return a neutral system message instead of failing.
-		 */
-		if ( ! $has_api_key ) {
-
-			$response_message = __( 'Message received. Moderation is currently passive.', 'adambox' );
-
-			$context[] = array(
-				'role'    => 'system',
-				'content' => $response_message,
-			);
-
-			return new WP_REST_Response(
-				array(
-					'success' => true,
-					'message' => $response_message,
-					'context' => array_slice( $context, - self::MAX_MESSAGES ),
-				),
-				200
-			);
-		}
-
-		/**
-		 * Placeholder moderation logic
-		 * (AI call will be injected here later)
-		 */
-		$response_message = $this->moderate_message(
-			$message,
-			$context,
-			$strictness,
-			$intervene
-		);
-
-		$context[] = array(
-			'role'    => 'system',
-			'content' => $response_message,
-		);
-
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'message' => $response_message,
 				'context' => array_slice( $context, - self::MAX_MESSAGES ),
 			),
 			200
@@ -165,22 +120,78 @@ class AdamBox_REST {
 	}
 
 	/**
-	 * Moderation logic stub (safe default behavior)
-	 *
-	 * @param string $message User message.
-	 * @param array  $context Conversation context.
-	 * @param string $strictness Moderation strictness.
-	 * @param string $intervention AI intervention level.
-	 * @return string
+	 * Handle incoming message
+	 */
+	public function handle_message( WP_REST_Request $request ) {
+
+		$post_id = absint( $request->get_param( 'post_id' ) );
+		$message = trim( wp_strip_all_tags( $request->get_param( 'message' ) ) );
+
+		if ( ! $post_id || $message === '' ) {
+			return new WP_REST_Response(
+				array(
+					'success' => false,
+					'error'   => __( 'Invalid request.', 'adambox' ),
+				),
+				400
+			);
+		}
+
+		$key     = $this->get_transient_key( $post_id );
+		$context = get_transient( $key );
+
+		if ( ! is_array( $context ) ) {
+			$context = array();
+		}
+
+		// Append user message
+		$context[] = array(
+			'role'    => 'user',
+			'content' => $message,
+		);
+
+		$context = array_slice( $context, - self::MAX_MESSAGES );
+
+		// Determine response
+		if ( ! AdamBox_Settings::has_api_key() ) {
+			$response_message = __( 'Conversation noted. Please continue respectfully.', 'adambox' );
+		} else {
+			$response_message = $this->moderate_message(
+				$message,
+				$context,
+				AdamBox_Settings::moderation_strictness(),
+				AdamBox_Settings::intervention_level()
+			);
+		}
+
+		// Append system message
+		$context[] = array(
+			'role'    => 'system',
+			'content' => $response_message,
+		);
+
+		$context = array_slice( $context, - self::MAX_MESSAGES );
+
+		// Save shared context
+		set_transient( $key, $context, self::TRANSIENT_TTL );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'context' => $context,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Placeholder moderation logic
 	 */
 	protected function moderate_message( $message, $context, $strictness, $intervention ) {
 
-		// This is intentionally conservative.
-		// Real AI logic will replace this later.
-
 		switch ( $intervention ) {
 			case 'actively_guide':
-				return __( 'Let’s keep the conversation respectful and on topic.', 'adambox' );
+				return __( 'Let’s keep the conversation on topic and respectful.', 'adambox' );
 
 			case 'summarize_when_needed':
 				return __( 'Conversation noted. Please continue respectfully.', 'adambox' );
