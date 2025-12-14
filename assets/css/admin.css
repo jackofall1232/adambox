@@ -1,0 +1,56 @@
+/* AdamBox Admin Styles
+ * File: assets/css/adambox-admin.css
+ * Purpose: Light polish for Settings → AdamBox
+ */
+
+.adambox-admin {
+	max-width: 720px;
+}
+
+.adambox-admin h1 {
+	margin-bottom: 0.75em;
+}
+
+.adambox-admin .form-table th {
+	width: 220px;
+	font-weight: 600;
+}
+
+.adambox-admin .form-table td {
+	vertical-align: top;
+}
+
+.adambox-admin input[type="password"],
+.adambox-admin select {
+	max-width: 320px;
+}
+
+.adambox-admin .description {
+	font-size: 0.85rem;
+	color: #646970;
+	margin-top: 0.25em;
+}
+
+/* Section spacing */
+
+.adambox-admin h2 {
+	margin-top: 2em;
+	padding-bottom: 0.25em;
+	border-bottom: 1px solid #dcdcde;
+}
+
+/* Submit button spacing */
+
+.adambox-admin .submit {
+	margin-top: 1.5em;
+}
+
+/* Subtle grouping */
+
+.adambox-admin .form-table tr {
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.adambox-admin .form-table tr:last-child {
+	border-bottom: none;
+}
