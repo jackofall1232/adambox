@@ -1,6 +1,5 @@
-/* AdamBox Frontend Styles
+/* AdamBox Frontend Styles (0.3.0 ALPHA)
  * File: assets/css/adambox.css
- * Purpose: Lightweight, neutral UI for AI moderation
  */
 
 .adambox {
@@ -13,9 +12,8 @@
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
 		Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
 	color: #1e1e1e;
+	position: relative;
 }
-
-/* Header */
 
 .adambox__header {
 	padding: 0.75em 1em;
@@ -35,8 +33,6 @@
 	margin-top: 0.2em;
 }
 
-/* Body */
-
 .adambox__body {
 	padding: 0;
 }
@@ -52,9 +48,8 @@
 }
 
 /* Messages */
-
 .adambox__message {
-	max-width: 85%;
+	max-width: 90%;
 	padding: 0.45em 0.65em;
 	border-radius: 4px;
 	font-size: 0.85rem;
@@ -63,15 +58,25 @@
 }
 
 /* User message */
-
 .adambox__message--user {
 	align-self: flex-end;
 	background: #2271b1;
 	color: #ffffff;
 }
 
-/* System / moderator message */
+/* User name + text layout */
+.adambox__message--user .adambox__meta {
+	font-size: 0.72rem;
+	font-weight: 600;
+	opacity: 0.9;
+	margin-bottom: 0.15em;
+}
 
+.adambox__message--user .adambox__text {
+	font-size: 0.85rem;
+}
+
+/* System / moderator message */
 .adambox__message--system {
 	align-self: flex-start;
 	background: #f0f0f1;
@@ -80,7 +85,6 @@
 }
 
 /* Composer */
-
 .adambox__composer {
 	display: flex;
 	gap: 0.5em;
@@ -102,8 +106,6 @@
 	border-color: #2271b1;
 	box-shadow: 0 0 0 1px #2271b1;
 }
-
-/* Send button */
 
 .adambox__send {
 	padding: 0.45em 0.9em;
@@ -127,23 +129,86 @@
 	cursor: not-allowed;
 }
 
-/* Accessibility helpers */
-
-.adambox [aria-live] {
-	outline: none;
+/* Join overlay */
+.adambox__overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1em;
+	z-index: 9999;
 }
 
-/* Small screens */
+.adambox__modal {
+	width: 100%;
+	max-width: 420px;
+	background: #ffffff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 1em;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.adambox__modalTitle {
+	font-size: 1rem;
+	font-weight: 700;
+	margin-bottom: 0.5em;
+}
+
+.adambox__modalText {
+	font-size: 0.85rem;
+	color: #3c434a;
+	margin-bottom: 0.75em;
+}
+
+.adambox__nameInput {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 0.55em 0.6em;
+	font-size: 0.9rem;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	margin-bottom: 0.5em;
+}
+
+.adambox__nameInput:focus {
+	outline: none;
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.adambox__modalError {
+	min-height: 1.2em;
+	color: #b32d2e;
+	font-size: 0.82rem;
+	margin-bottom: 0.6em;
+}
+
+.adambox__joinBtn {
+	width: 100%;
+	padding: 0.6em 0.75em;
+	font-size: 0.9rem;
+	border-radius: 6px;
+	border: 1px solid #2271b1;
+	background: #2271b1;
+	color: #ffffff;
+	cursor: pointer;
+}
+
+.adambox__joinBtn:hover {
+	background: #135e96;
+	border-color: #135e96;
+}
 
 @media (max-width: 480px) {
 	.adambox {
 		margin: 1em;
 	}
-
 	.adambox__messages {
 		max-height: 220px;
 	}
-
 	.adambox__message {
 		max-width: 100%;
 	}
