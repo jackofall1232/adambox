@@ -1,0 +1,416 @@
+/* ==========================================================================
+   AdamBox — Enhanced Admin UI (Premium Teal Gradient Design)
+   File: assets/css/adambox-admin.css
+   Based on Ask Adam design system
+   ========================================================================== */
+
+/* ---- Enhanced Variables with Teal Focus ---- */
+.adambox-admin {
+  --ab-maxw: 1200px;
+  --ab-radius-lg: 16px;
+  --ab-radius-xl: 24px;
+  --ab-gap: 20px;
+
+  /* Enhanced Brand palette with teal gradients */
+  --ab-primary: #17a2a2;
+  --ab-secondary: #0891b2;
+  --ab-accent: #8b5cf6;
+  --ab-success: #10b981;
+  --ab-warning: #f59e0b;
+  --ab-danger: #ef4444;
+  
+  --ab-bg: #ffffff;
+  --ab-text: #1f2937;
+  --ab-text-light: #edf6f6;
+  --ab-muted: #6b7280;
+  --ab-border: #e2e8f0;
+
+  /* Teal-focused glassmorphic effects */
+  --ab-glass-bg: linear-gradient(135deg, rgba(23, 162, 162, 0.12), rgba(8, 145, 178, 0.08), rgba(14, 116, 144, 0.10));
+  --ab-glass-border: rgba(23, 162, 162, 0.25);
+  --ab-glass-hover: linear-gradient(135deg, rgba(23, 162, 162, 0.18), rgba(8, 145, 178, 0.12), rgba(14, 116, 144, 0.15));
+  
+  /* Enhanced shadows with teal glow */
+  --ab-shadow: 0 8px 32px rgba(23, 162, 162, 0.15), 0 4px 16px rgba(0,0,0,0.08);
+  --ab-shadow-hover: 0 16px 48px rgba(23, 162, 162, 0.25), 0 8px 32px rgba(0,0,0,0.12);
+
+  /* Animation timing */
+  --ab-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  max-width: var(--ab-maxw);
+  color: var(--ab-text);
+}
+
+/* Enhanced dark mode */
+@media (prefers-color-scheme: dark) {
+  .adambox-admin {
+    --ab-bg: #0b0f17;
+    --ab-text: #e5e7eb;
+    --ab-text-light: #f9fafb;
+    --ab-muted: #9ca3af;
+    --ab-border: #374151;
+    
+    --ab-glass-bg: linear-gradient(135deg, rgba(23, 162, 162, 0.25), rgba(8, 145, 178, 0.15), rgba(14, 116, 144, 0.20));
+    --ab-glass-border: rgba(23, 162, 162, 0.4);
+    --ab-glass-hover: linear-gradient(135deg, rgba(23, 162, 162, 0.35), rgba(8, 145, 178, 0.25), rgba(14, 116, 144, 0.30));
+    
+    --ab-shadow: 0 8px 32px rgba(23, 162, 162, 0.3), 0 4px 16px rgba(0,0,0,0.4);
+    --ab-shadow-hover: 0 16px 48px rgba(23, 162, 162, 0.4), 0 8px 32px rgba(0,0,0,0.5);
+  }
+}
+
+/* ==========================================================================
+   ENHANCED HERO / PAGE TITLE
+   ========================================================================== */
+
+.adambox-admin > h1 {
+  position: relative;
+  margin: 8px 0 24px;
+  padding: 24px;
+  border-radius: var(--ab-radius-xl);
+  background: linear-gradient(135deg, var(--ab-primary) 0%, var(--ab-secondary) 50%, var(--ab-accent) 100%);
+  color: var(--ab-text-light);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--ab-shadow);
+  overflow: hidden;
+}
+
+.adambox-admin > h1::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 25%, 
+    rgba(23, 162, 162, 0.2) 40%,
+    rgba(255,255,255,0.15) 50%, 
+    rgba(8, 145, 178, 0.2) 60%,
+    transparent 75%
+  );
+  animation: heroShimmer 6s infinite;
+  pointer-events: none;
+}
+
+@keyframes heroShimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* ==========================================================================
+   SECTION HEADERS (H2) - GLASSMORPHIC CARDS
+   ========================================================================== */
+
+.adambox-admin h2 {
+  position: relative;
+  margin: 24px 0 0;
+  padding: 20px 24px;
+  border-radius: var(--ab-radius-lg) var(--ab-radius-lg) 0 0;
+  background: var(--ab-glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ab-glass-border);
+  border-bottom: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ab-text);
+  box-shadow: var(--ab-shadow);
+  overflow: hidden;
+}
+
+.adambox-admin h2::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(23, 162, 162, 0.15) 45%,
+    rgba(255,255,255,0.12) 50%, 
+    rgba(8, 145, 178, 0.15) 55%,
+    transparent 70%
+  );
+  animation: cardShimmer 8s infinite;
+  pointer-events: none;
+}
+
+@keyframes cardShimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* ==========================================================================
+   FORM TABLES - ENHANCED GLASSMORPHIC DESIGN
+   ========================================================================== */
+
+.adambox-admin .form-table {
+  position: relative;
+  margin: 0 0 24px;
+  background: var(--ab-glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--ab-glass-border);
+  border-top: none;
+  border-radius: 0 0 var(--ab-radius-lg) var(--ab-radius-lg);
+  box-shadow: var(--ab-shadow);
+  overflow: hidden;
+  transition: var(--ab-transition);
+}
+
+.adambox-admin .form-table::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(23, 162, 162, 0.15) 45%,
+    rgba(255,255,255,0.12) 50%, 
+    rgba(8, 145, 178, 0.15) 55%,
+    transparent 70%
+  );
+  animation: cardShimmer 8s infinite;
+  pointer-events: none;
+}
+
+.adambox-admin .form-table:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ab-shadow-hover);
+  background: var(--ab-glass-hover);
+  border-color: rgba(23, 162, 162, 0.4);
+}
+
+/* Table cells */
+.adambox-admin .form-table th {
+  position: relative;
+  z-index: 2;
+  width: 240px;
+  padding: 20px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ab-text);
+  vertical-align: top;
+  background: transparent;
+}
+
+.adambox-admin .form-table td {
+  position: relative;
+  z-index: 2;
+  padding: 20px 24px 20px 0;
+  vertical-align: top;
+}
+
+.adambox-admin .form-table tr {
+  border-bottom: 1px solid rgba(23, 162, 162, 0.1);
+}
+
+.adambox-admin .form-table tr:last-child {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   ENHANCED FORM INPUTS
+   ========================================================================== */
+
+.adambox-admin input[type="text"],
+.adambox-admin input[type="password"],
+.adambox-admin select {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 16px;
+  border: 1px solid var(--ab-border);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  color: var(--ab-text);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: var(--ab-transition);
+  font-family: inherit;
+}
+
+.adambox-admin input[type="text"]:focus,
+.adambox-admin input[type="password"]:focus,
+.adambox-admin select:focus {
+  outline: none;
+  border-color: var(--ab-primary);
+  box-shadow: 0 0 0 3px rgba(23, 162, 162, 0.1);
+  background: rgba(255,255,255,0.98);
+  transform: translateY(-1px);
+}
+
+.adambox-admin select {
+  cursor: pointer;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="8" viewBox="0 0 12 8"><path fill="%2317a2a2" d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+  padding-right: 36px;
+  appearance: none;
+}
+
+/* Description text */
+.adambox-admin .description {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ab-muted);
+}
+
+/* ==========================================================================
+   ENHANCED SUBMIT BUTTON
+   ========================================================================== */
+
+.adambox-admin .submit {
+  margin: 0;
+  padding: 0;
+}
+
+.adambox-admin .button-primary {
+  position: relative;
+  background: linear-gradient(135deg, #17a2a2 0%, #0891b2 50%, #0e7490 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(23, 162, 162, 0.3);
+  cursor: pointer;
+  transition: var(--ab-transition);
+  overflow: hidden;
+}
+
+.adambox-admin .button-primary::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(255,255,255,0.2) 50%, 
+    transparent 70%
+  );
+  animation: buttonShimmer 3s infinite;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes buttonShimmer {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.adambox-admin .button-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(23, 162, 162, 0.4);
+}
+
+.adambox-admin .button-primary:hover::before {
+  opacity: 1;
+}
+
+.adambox-admin .button-primary:active {
+  transform: translateY(0);
+}
+
+.adambox-admin .button-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ==========================================================================
+   WORDPRESS NOTICES ENHANCEMENT
+   ========================================================================== */
+
+.adambox-admin .notice {
+  margin: 20px 0;
+  padding: 16px 20px;
+  border-radius: var(--ab-radius-lg);
+  border-left: 4px solid;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.adambox-admin .notice.notice-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--ab-success);
+}
+
+.adambox-admin .notice.notice-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--ab-warning);
+}
+
+.adambox-admin .notice.notice-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--ab-danger);
+}
+
+.adambox-admin .notice.notice-info {
+  background: rgba(23, 162, 162, 0.1);
+  border-color: var(--ab-primary);
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 782px) {
+  .adambox-admin {
+    margin: 10px 0;
+  }
+
+  .adambox-admin > h1 {
+    padding: 20px;
+    font-size: 20px;
+  }
+
+  .adambox-admin h2 {
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+
+  .adambox-admin .form-table th,
+  .adambox-admin .form-table td {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+  }
+
+  .adambox-admin .form-table th {
+    padding-bottom: 6px;
+  }
+
+  .adambox-admin input[type="text"],
+  .adambox-admin input[type="password"],
+  .adambox-admin select {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   Reduced motion accessibility
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .adambox-admin *,
+  .adambox-admin *::before,
+  .adambox-admin *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
