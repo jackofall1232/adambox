@@ -13,7 +13,7 @@ class AdamBox_REST {
 	const CONTEXT_TTL        = 1800; // 30 minutes
 
 	/* =========================
-	 * Rate limits (layered)
+	 * Rate limits
 	 * ========================= */
 	const MIN_INTERVAL = 3;   // seconds between messages
 	const WINDOW_TIME  = 60;  // rolling window (seconds)
@@ -31,23 +31,23 @@ class AdamBox_REST {
 		add_action( 'rest_api_init', array( $this, 'routes' ) );
 	}
 
+	/* =========================
+	 * Routes
+	 * ========================= */
+
 	public function routes() {
 
 		register_rest_route( self::NAMESPACE, '/context', array(
 			'methods'             => 'GET',
 			'callback'            => array( $this, 'get_context' ),
-			'permission_callback' => array( $this, 'perm' ),
+			'permission_callback' => '__return_true', // public
 		) );
 
 		register_rest_route( self::NAMESPACE, '/message', array(
 			'methods'             => 'POST',
 			'callback'            => array( $this, 'post_message' ),
-			'permission_callback' => array( $this, 'perm' ),
+			'permission_callback' => '__return_true', // public chat
 		) );
-	}
-
-	public function perm( $req ) {
-		return wp_verify_nonce( $req->get_header( 'X-WP-Nonce' ), 'wp_rest' );
 	}
 
 	/* =========================
@@ -152,13 +152,13 @@ class AdamBox_REST {
 		$text    = $this->normalize( $r['message'], 500 );
 
 		if ( ! $post_id || ! $sid || ! $name || ! $text ) {
-			return new WP_Error( 'bad', 'Invalid request', array( 'status' => 400 ) );
+			return new WP_Error( 'bad', 'Invalid request.', array( 'status' => 400 ) );
 		}
 
 		$key = $this->ctx_key( $post_id );
 		$ctx = get_transient( $key ) ?: array();
 
-		// Rate limit first (do not store spam attempts)
+		// Rate limit first
 		if ( $msg = $this->rate_limit( $post_id, $sid, $name ) ) {
 			return $this->no_cache_response( array(
 				'error'   => $msg,
@@ -176,25 +176,23 @@ class AdamBox_REST {
 		);
 
 		/* =========================
-		 * Moderation: keywords -> moderator
+		 * Moderation pipeline
 		 * ========================= */
 
-		$severity = false;
+		if ( class_exists( 'AdamBox_Keywords' ) && class_exists( 'AdamBox_Moderator' ) ) {
 
-		if ( class_exists( 'AdamBox_Keywords' ) ) {
 			$severity = AdamBox_Keywords::analyze( $ctx, $text );
-		}
 
-		if ( $severity && class_exists( 'AdamBox_Moderator' ) ) {
+			if ( $severity ) {
+				$mod = AdamBox_Moderator::handle( $ctx, $severity );
 
-			$mod = AdamBox_Moderator::handle( $ctx, $severity );
-
-			if ( $mod ) {
-				$ctx[] = array(
-					'role'    => 'system',
-					'content' => $mod,
-					'time'    => time(),
-				);
+				if ( $mod ) {
+					$ctx[] = array(
+						'role'    => 'system',
+						'content' => $mod,
+						'time'    => time(),
+					);
+				}
 			}
 		}
 
