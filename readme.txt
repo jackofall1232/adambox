@@ -1,11 +1,11 @@
 === AdamBox ===
-Contributors: jackofall1232, Ask Adam
+Contributors: jackofall1232, askadam
 Donate link:
 Tags: ai moderation, chat moderation, content moderation, ai safety, community tools
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.3.2
+Stable tag: 1.0.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -60,7 +60,9 @@ AdamBox is built for site owners who want **responsible AI oversight** without s
 == Usage ==
 
 Insert the shortcode anywhere you want the moderation box to appear:
-[adambox]
+
+`[adambox]`
+
 Each page maintains its own conversation context.  
 Messages are shared live between visitors on the same page.
 
@@ -120,12 +122,12 @@ Display names are session-based only and are not linked to identities.
 = Can I use AdamBox without an API key? =
 
 Yes.  
-The API key is optional. Without it, AdamBox renders the interface and degrades gracefully.
+The API key is optional. Without it, AdamBox continues to function using non-AI moderation logic.
 
-= Is there a Pro version? =
+= Is AdamBox free? =
 
-AdamBox is fully functional as a free plugin.  
-The architecture allows future extensions, but no features are gated or hidden in the free version.
+Yes.  
+AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Screenshots ==
 
@@ -133,6 +135,14 @@ The architecture allows future extensions, but no features are gated or hidden i
 2. AdamBox settings panel in WordPress admin  
 
 == Changelog ==
+
+= 1.0.0 =
+* Initial stable release
+* Hardened moderation pipeline with keyword tiers and optional AI oversight
+* Privacy-first architecture validated for WordPress.org compliance
+* REST API rate limiting and abuse protection
+* Mobile stability and caching fixes finalized
+* Plugin Checker warnings resolved
 
 = 0.3.2 =
 * Fixed aggressive mobile browser caching preventing live updates
@@ -157,8 +167,8 @@ The architecture allows future extensions, but no features are gated or hidden i
 
 == Upgrade Notice ==
 
-= 0.3.2 =
-Improves live updates on mobile devices and fixes scrolling issues during active conversations.
+= 1.0.0 =
+This is the first stable release of AdamBox. No action required beyond updating.
 
 == License ==
 
