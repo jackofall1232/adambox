@@ -3,7 +3,7 @@
  * Plugin Name: AdamBox
  * Plugin URI: https://askadamit.com
  * Description: Lightweight AI-powered moderation box for WordPress.
- * Version: 0.3.3
+ * Version: 0.4.0
  * Author: Ask Adam
  * Author URI: https://askadamit.com
  * License: GPL v3
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin constants
  */
-define( 'ADAMBOX_VERSION', '0.3.3' );
+define( 'ADAMBOX_VERSION', '0.4.0' );
 define( 'ADAMBOX_PLUGIN_FILE', __FILE__ );
 define( 'ADAMBOX_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADAMBOX_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -38,13 +38,32 @@ add_action( 'plugins_loaded', 'adambox_load_textdomain' );
 
 /**
  * Include core files
+ *
+ * Order matters:
+ * - Settings first
+ * - Keywords (logic only)
+ * - Moderator (depends on REST constants)
+ * - REST (wires everything)
  */
 function adambox_includes() {
 
-	require_once ADAMBOX_PLUGIN_DIR . 'includes/class-adambox-shortcode.php';
-	require_once ADAMBOX_PLUGIN_DIR . 'includes/class-adambox-admin.php';
-	require_once ADAMBOX_PLUGIN_DIR . 'includes/class-adambox-settings.php';
-	require_once ADAMBOX_PLUGIN_DIR . 'includes/class-adambox-rest.php';
+	$base = ADAMBOX_PLUGIN_DIR . 'includes/';
+
+	$files = array(
+		'class-adambox-settings.php',
+		'class-adambox-keywords.php',
+		'class-adambox-moderator.php',
+		'class-adambox-rest.php',
+		'class-adambox-shortcode.php',
+		'class-adambox-admin.php',
+	);
+
+	foreach ( $files as $file ) {
+		$path = $base . $file;
+		if ( file_exists( $path ) ) {
+			require_once $path;
+		}
+	}
 }
 add_action( 'plugins_loaded', 'adambox_includes', 5 );
 
