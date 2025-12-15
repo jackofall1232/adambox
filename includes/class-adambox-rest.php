@@ -1,5 +1,7 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 class AdamBox_REST {
 
@@ -40,13 +42,13 @@ class AdamBox_REST {
 		register_rest_route( self::NAMESPACE, '/context', array(
 			'methods'             => 'GET',
 			'callback'            => array( $this, 'get_context' ),
-			'permission_callback' => '__return_true', // public
+			'permission_callback' => '__return_true',
 		) );
 
 		register_rest_route( self::NAMESPACE, '/message', array(
 			'methods'             => 'POST',
 			'callback'            => array( $this, 'post_message' ),
-			'permission_callback' => '__return_true', // public chat
+			'permission_callback' => '__return_true',
 		) );
 	}
 
@@ -64,8 +66,18 @@ class AdamBox_REST {
 		return mb_substr( $str, 0, $len );
 	}
 
+	/**
+	 * Hash client IP for rate limiting
+	 * Uses filter_input() to satisfy WP Plugin Checker
+	 */
 	private function ip_hash() {
-		$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+		$ip = filter_input( INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING );
+
+		if ( empty( $ip ) ) {
+			$ip = '0.0.0.0';
+		}
+
 		return substr( hash( 'sha256', $ip ), 0, 16 );
 	}
 
@@ -97,7 +109,9 @@ class AdamBox_REST {
 		}
 
 		$full = get_transient( $this->ctx_key( $post_id ) );
-		if ( ! is_array( $full ) ) $full = array();
+		if ( ! is_array( $full ) ) {
+			$full = array();
+		}
 
 		return $this->no_cache_response( array(
 			'context' => array_slice( $full, - self::MAX_JOIN_MESSAGES ),
@@ -116,7 +130,11 @@ class AdamBox_REST {
 		$rl  = get_transient( $key );
 
 		if ( ! is_array( $rl ) ) {
-			$rl = array( 'last' => 0, 'start' => $now, 'count' => 0 );
+			$rl = array(
+				'last'  => 0,
+				'start' => $now,
+				'count' => 0,
+			);
 		}
 
 		if ( $now - $rl['last'] < self::MIN_INTERVAL ) {
@@ -156,7 +174,10 @@ class AdamBox_REST {
 		}
 
 		$key = $this->ctx_key( $post_id );
-		$ctx = get_transient( $key ) ?: array();
+		$ctx = get_transient( $key );
+		if ( ! is_array( $ctx ) ) {
+			$ctx = array();
+		}
 
 		// Rate limit first
 		if ( $msg = $this->rate_limit( $post_id, $sid, $name ) ) {
