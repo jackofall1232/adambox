@@ -10,17 +10,17 @@ class AdamBox_REST {
 	 * ========================= */
 	const MAX_STORE_MESSAGES = 50;
 	const MAX_JOIN_MESSAGES  = 10;
-	const CONTEXT_TTL        = 1800;
+	const CONTEXT_TTL        = 1800; // 30 minutes
 
 	/* =========================
-	 * Rate limits
+	 * Rate limits (layered)
 	 * ========================= */
-	const MIN_INTERVAL = 3;
-	const WINDOW_TIME  = 60;
-	const WINDOW_MAX   = 20;
+	const MIN_INTERVAL = 3;   // seconds between messages
+	const WINDOW_TIME  = 60;  // rolling window (seconds)
+	const WINDOW_MAX   = 20;  // max messages per window
 
 	/* =========================
-	 * OpenAI
+	 * OpenAI (used by Moderator)
 	 * ========================= */
 	const OPENAI_ENDPOINT       = 'https://api.openai.com/v1/responses';
 	const OPENAI_MODEL          = 'gpt-5-mini';
@@ -141,173 +141,6 @@ class AdamBox_REST {
 	}
 
 	/* =========================
-	 * Moderation logic
-	 * ========================= */
-
-	private function should_moderate( $ctx, $text ) {
-
-	if ( ! AdamBox_Settings::has_api_key() ) return false;
-
-	$strictness   = AdamBox_Settings::moderation_strictness();
-	$intervention = AdamBox_Settings::intervention_level();
-
-	$txt = strtolower( $text );
-
-	/* =========================
-	 * Tier 1: Hard / High-risk terms
-	 * ========================= */
-	$hard_terms = array(
-		'kys','kill yourself','kill you','i will kill','i\'ll kill',
-		'suicide','rape','nazi','kkk',
-		'lynch','gas the','shoot you','bomb'
-	);
-
-	foreach ( $hard_terms as $t ) {
-		if ( strpos( $txt, $t ) !== false ) return true;
-	}
-
-	/* =========================
-	 * Tier 2: Soft harassment / abuse
-	 * (send to GPT, don’t auto-block)
-	 * ========================= */
-	$soft_terms = array(
-		'bitch','idiot','moron','stupid','dumb','retard',
-		'asshole','fuck you','piece of shit',
-		'shut up','trash','loser'
-	);
-
-	foreach ( $soft_terms as $t ) {
-		if ( strpos( $txt, $t ) !== false ) return true;
-	}
-
-	/* =========================
-	 * Tier 3: Targeted harassment patterns
-	 * ========================= */
-	if ( preg_match(
-		'/\byou (are|\'re) (a )?(bitch|idiot|moron|stupid|loser|asshole)\b/i',
-		$text
-	) ) {
-		return true;
-	}
-
-	/* =========================
-	 * Tier 4: Excessive punctuation / agitation
-	 * ========================= */
-	if ( $strictness !== 'low' && preg_match( '/[!?]{5,}/', $text ) ) {
-		return true;
-	}
-
-	/* =========================
-	 * Tier 5: Pattern-based escalation
-	 * ========================= */
-	if ( $intervention !== 'intervene_only' ) {
-
-		// Count recent user messages
-		$user_msgs = 0;
-		foreach ( $ctx as $m ) {
-			if ( $m['role'] === 'user' ) $user_msgs++;
-		}
-
-		// Periodic nudge (existing behavior)
-		if ( $user_msgs > 0 && $user_msgs % 8 === 0 ) {
-			return true;
-		}
-
-		// Faster escalation for repeated negativity
-		$recent = array_slice( $ctx, -3 );
-		$neg = 0;
-
-		foreach ( $recent as $m ) {
-			if (
-				$m['role'] === 'user' &&
-				preg_match( '/(bitch|idiot|moron|stupid|loser|asshole)/i', $m['content'] )
-			) {
-				$neg++;
-			}
-		}
-
-		if ( $neg >= 2 ) return true;
-	}
-
-	return false;
-}
-
-	private function build_transcript( $ctx ) {
-		$lines = array();
-		foreach ( array_slice( $ctx, -10 ) as $m ) {
-			$label = ( $m['role'] === 'user' ) ? ( $m['name'] ?: 'User' ) : 'Moderator';
-			$lines[] = $label . ': ' . $m['content'];
-		}
-		return implode( "\n", $lines );
-	}
-
-	private function run_moderation( $ctx ) {
-
-		$key = AdamBox_Settings::get( 'openai_api_key', '' );
-		if ( ! $key ) return '';
-
-		$payload = array(
-			'model' => self::OPENAI_MODEL,
-			'reasoning' => array( 'effort' => 'low' ),
-			'input' => array(
-				array(
-					'role' => 'system',
-					'content' => array(
-						array(
-							'type' => 'input_text',
-							'text' =>
-								'You are Adam, a calm and neutral AI moderator. ' .
-								'If no moderation is required, respond with exactly: NO_ACTION. ' .
-								'If intervention is needed, reply with ONE short, neutral sentence addressed to the group.'
-						)
-					)
-				),
-				array(
-					'role' => 'user',
-					'content' => array(
-						array(
-							'type' => 'input_text',
-							'text' => $this->build_transcript( $ctx )
-						)
-					)
-				)
-			),
-			'max_output_tokens' => self::OPENAI_MAX_OUT_TOKENS,
-		);
-
-		$res = wp_remote_post(
-			self::OPENAI_ENDPOINT,
-			array(
-				'timeout' => self::OPENAI_TIMEOUT,
-				'headers' => array(
-					'Authorization' => 'Bearer ' . $key,
-					'Content-Type'  => 'application/json',
-				),
-				'body' => wp_json_encode( $payload ),
-			)
-		);
-
-		if ( is_wp_error( $res ) ) return '';
-
-		$body = json_decode( wp_remote_retrieve_body( $res ), true );
-		if ( ! is_array( $body ) || empty( $body['output'] ) ) return '';
-
-		foreach ( $body['output'] as $item ) {
-			if ( isset( $item['type'] ) && $item['type'] === 'message' ) {
-				foreach ( $item['content'] as $c ) {
-					if ( isset( $c['text'] ) ) {
-						$out = trim( preg_replace( '/\s+/', ' ', $c['text'] ) );
-						if ( strtoupper( $out ) === 'NO_ACTION' ) return '';
-						return mb_substr( $out, 0, 380 );
-					}
-				}
-			}
-		}
-
-		return '';
-	}
-
-	/* =========================
 	 * Message handling
 	 * ========================= */
 
@@ -325,14 +158,16 @@ class AdamBox_REST {
 		$key = $this->ctx_key( $post_id );
 		$ctx = get_transient( $key ) ?: array();
 
+		// Rate limit first (do not store spam attempts)
 		if ( $msg = $this->rate_limit( $post_id, $sid, $name ) ) {
 			return $this->no_cache_response( array(
-				'error' => $msg,
+				'error'   => $msg,
 				'context' => array_slice( $ctx, - self::MAX_JOIN_MESSAGES ),
-				'hash' => md5( wp_json_encode( $ctx ) ),
+				'hash'    => md5( wp_json_encode( $ctx ) ),
 			), 429 );
 		}
 
+		// Store user message
 		$ctx[] = array(
 			'role'    => 'user',
 			'name'    => $name,
@@ -340,8 +175,21 @@ class AdamBox_REST {
 			'time'    => time(),
 		);
 
-		if ( $this->should_moderate( $ctx, $text ) ) {
-			if ( $mod = $this->run_moderation( $ctx ) ) {
+		/* =========================
+		 * Moderation: keywords -> moderator
+		 * ========================= */
+
+		$severity = false;
+
+		if ( class_exists( 'AdamBox_Keywords' ) ) {
+			$severity = AdamBox_Keywords::analyze( $ctx, $text );
+		}
+
+		if ( $severity && class_exists( 'AdamBox_Moderator' ) ) {
+
+			$mod = AdamBox_Moderator::handle( $ctx, $severity );
+
+			if ( $mod ) {
 				$ctx[] = array(
 					'role'    => 'system',
 					'content' => $mod,
@@ -350,6 +198,7 @@ class AdamBox_REST {
 			}
 		}
 
+		// Save context
 		$ctx = array_slice( $ctx, - self::MAX_STORE_MESSAGES );
 		set_transient( $key, $ctx, self::CONTEXT_TTL );
 
