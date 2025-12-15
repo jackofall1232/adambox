@@ -201,7 +201,6 @@ class AdamBox_REST {
 				'model' => self::OPENAI_MODEL,
 				'instructions' => "You are Adam, a neutral AI moderator. If no intervention is needed, reply NO_ACTION.",
 				'input' => $this->build_transcript( $ctx ),
-				'temperature' => 0.2,
 				'max_output_tokens' => self::OPENAI_MAX_OUT_TOKENS,
 			) ),
 		) );
