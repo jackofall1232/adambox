@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: AdamBox
- * Plugin URI: https://askadamit.com
+ * Plugin URI: https://github.com/jackofall1232/adambox
  * Description: Lightweight AI-powered moderation box for WordPress.
  * Version: 1.0.0
  * Author: Ask Adam
- * Author URI: https://askadamit.com
+ * Author URI: https://github.com/jackofall1232
  * License: GPL v3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: adambox
