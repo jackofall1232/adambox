@@ -9,15 +9,11 @@ Stable tag: 1.0.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Lightweight AI-powered moderation box for WordPress. AdamBox provides calm, neutral AI oversight for conversations without tracking users or storing data.
+Lightweight AI-powered moderation box for WordPress that provides calm, neutral AI oversight without tracking users or storing data.
 
 == Description ==
 
-AdamBox is a **lightweight AI moderation box** for WordPress.
-
-It is designed to provide **calm, neutral, non-dominant AI moderation** for conversations embedded on a page — without acting as a chatbot, without storing user data, and without tracking identities.
-
-AdamBox is **not** a chat replacement.  
+Lightweight AI-powered moderation for WordPress conversations with calm, neutral oversight and no user tracking.
 It is an **AI moderator**, not a participant.
 
 ### Core Principles
