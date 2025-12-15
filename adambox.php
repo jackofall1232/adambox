@@ -3,7 +3,7 @@
  * Plugin Name: AdamBox
  * Plugin URI: https://askadamit.com
  * Description: Lightweight AI-powered moderation box for WordPress.
- * Version: 0.3.8
+ * Version: 1.0.0
  * Author: Ask Adam
  * Author URI: https://askadamit.com
  * License: GPL v3
@@ -19,22 +19,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin constants
  */
-define( 'ADAMBOX_VERSION', '0.3.8' );
+define( 'ADAMBOX_VERSION', '1.0.0' );
 define( 'ADAMBOX_PLUGIN_FILE', __FILE__ );
 define( 'ADAMBOX_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADAMBOX_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-
-/**
- * Load text domain
- */
-function adambox_load_textdomain() {
-	load_plugin_textdomain(
-		'adambox',
-		false,
-		dirname( plugin_basename( __FILE__ ) ) . '/languages'
-	);
-}
-add_action( 'plugins_loaded', 'adambox_load_textdomain' );
 
 /**
  * Include core files
@@ -42,8 +30,9 @@ add_action( 'plugins_loaded', 'adambox_load_textdomain' );
  * Order matters:
  * - Settings first
  * - Keywords (logic only)
- * - Moderator (depends on REST constants)
+ * - Moderator (AI handling)
  * - REST (wires everything)
+ * - Shortcode / Admin last
  */
 function adambox_includes() {
 
