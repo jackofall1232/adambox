@@ -10,22 +10,22 @@ class AdamBox_REST {
 	 * ========================= */
 	const MAX_STORE_MESSAGES = 50;
 	const MAX_JOIN_MESSAGES  = 10;
-	const CONTEXT_TTL        = 1800; // 30 minutes
+	const CONTEXT_TTL        = 1800;
 
 	/* =========================
-	 * Rate limits (layered)
+	 * Rate limits
 	 * ========================= */
-	const MIN_INTERVAL = 3;   // seconds between messages
-	const WINDOW_TIME  = 60;  // rolling window (seconds)
-	const WINDOW_MAX   = 20;  // max messages per window
+	const MIN_INTERVAL = 3;
+	const WINDOW_TIME  = 60;
+	const WINDOW_MAX   = 20;
 
 	/* =========================
-	 * OpenAI (Moderation)
+	 * OpenAI
 	 * ========================= */
 	const OPENAI_ENDPOINT       = 'https://api.openai.com/v1/responses';
-	const OPENAI_MODEL          = 'gpt-5-nano';
+	const OPENAI_MODEL          = 'gpt-5-mini';
 	const OPENAI_TIMEOUT        = 12;
-	const OPENAI_MAX_OUT_TOKENS = 120;
+	const OPENAI_MAX_OUT_TOKENS = 620;
 
 	public function __construct() {
 		add_action( 'rest_api_init', array( $this, 'routes' ) );
@@ -106,81 +106,17 @@ class AdamBox_REST {
 	}
 
 	/* =========================
-	 * Rate Limiting
-	 * ========================= */
-
-	private function rate_limit( $post_id, $sid, $name ) {
-
-		$key = $this->rl_key( $post_id, $sid, $name );
-		$now = time();
-		$rl  = get_transient( $key );
-
-		if ( ! is_array( $rl ) ) {
-			$rl = array( 'last' => 0, 'start' => $now, 'count' => 0 );
-		}
-
-		if ( $now - $rl['last'] < self::MIN_INTERVAL ) {
-			return 'Slow down a bit.';
-		}
-
-		if ( $now - $rl['start'] > self::WINDOW_TIME ) {
-			$rl['start'] = $now;
-			$rl['count'] = 0;
-		}
-
-		if ( $rl['count'] >= self::WINDOW_MAX ) {
-			return 'Rate limit reached. Try again shortly.';
-		}
-
-		$rl['last']  = $now;
-		$rl['count']++;
-
-		set_transient( $key, $rl, self::WINDOW_TIME + 30 );
-
-		return '';
-	}
-
-	/* =========================
-	 * Moderation
+	 * Moderation (FORCED ON)
 	 * ========================= */
 
 	private function should_moderate( $ctx, $text ) {
-
-		if ( ! AdamBox_Settings::has_api_key() ) return false;
-
-		$strictness   = AdamBox_Settings::moderation_strictness();
-		$intervention = AdamBox_Settings::intervention_level();
-
-		$txt = strtolower( $text );
-
-		$hard_terms = array(
-			'kys','kill yourself','kill you','i will kill','i\'ll kill',
-			'suicide','rape','nazi','kkk'
-		);
-
-		foreach ( $hard_terms as $t ) {
-			if ( strpos( $txt, $t ) !== false ) return true;
-		}
-
-		if ( $strictness !== 'low' && preg_match( '/[!?]{5,}/', $text ) ) {
-			return true;
-		}
-
-		if ( $intervention !== 'intervene_only' ) {
-			$count = 0;
-			foreach ( $ctx as $m ) {
-				if ( $m['role'] === 'user' ) $count++;
-			}
-			if ( $count > 0 && $count % 8 === 0 ) return true;
-		}
-
-		return false;
+		return true; // 🔴 FOR DEBUG – always moderate
 	}
 
 	private function build_transcript( $ctx ) {
 		$lines = array();
 		foreach ( array_slice( $ctx, -10 ) as $m ) {
-			$label = $m['role'] === 'user' ? ( $m['name'] ?: 'User' ) : 'Moderator';
+			$label = ( $m['role'] === 'user' ) ? ( $m['name'] ?: 'User' ) : 'Moderator';
 			$lines[] = $label . ': ' . $m['content'];
 		}
 		return implode( "\n", $lines );
@@ -189,30 +125,73 @@ class AdamBox_REST {
 	private function run_moderation( $ctx ) {
 
 		$key = AdamBox_Settings::get( 'openai_api_key', '' );
-		if ( ! $key ) return '';
+		if ( ! $key ) {
+			return 'Moderator unavailable (API key missing).';
+		}
 
-		$res = wp_remote_post( self::OPENAI_ENDPOINT, array(
-			'timeout' => self::OPENAI_TIMEOUT,
-			'headers' => array(
-				'Authorization' => 'Bearer ' . $key,
-				'Content-Type'  => 'application/json',
+		$payload = array(
+			'model' => self::OPENAI_MODEL,
+			'reasoning' => array( 'effort' => 'low' ),
+			'input' => array(
+				array(
+					'role' => 'system',
+					'content' => array(
+						array(
+							'type' => 'input_text',
+							'text' => 'You are Adam, a calm and neutral AI moderator. Always respond with ONE short sentence to the group.'
+						)
+					)
+				),
+				array(
+					'role' => 'user',
+					'content' => array(
+						array(
+							'type' => 'input_text',
+							'text' => $this->build_transcript( $ctx )
+						)
+					)
+				)
 			),
-			'body' => wp_json_encode( array(
-				'model' => self::OPENAI_MODEL,
-				'instructions' => "You are Adam, a neutral AI moderator. If no intervention is needed, reply NO_ACTION.",
-				'input' => $this->build_transcript( $ctx ),
-				'max_output_tokens' => self::OPENAI_MAX_OUT_TOKENS,
-			) ),
-		) );
+			'max_output_tokens' => self::OPENAI_MAX_OUT_TOKENS,
+		);
 
-		if ( is_wp_error( $res ) ) return '';
+		$res = wp_remote_post(
+			self::OPENAI_ENDPOINT,
+			array(
+				'timeout' => self::OPENAI_TIMEOUT,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $key,
+					'Content-Type'  => 'application/json',
+				),
+				'body' => wp_json_encode( $payload ),
+			)
+		);
+
+		if ( is_wp_error( $res ) ) {
+			return 'Moderator temporarily unavailable.';
+		}
 
 		$body = json_decode( wp_remote_retrieve_body( $res ), true );
-		$out  = trim( $body['output_text'] ?? '' );
 
-		if ( strtoupper( $out ) === 'NO_ACTION' ) return '';
+		if ( ! is_array( $body ) || empty( $body['output'] ) ) {
+			return 'Moderator is reviewing the conversation.';
+		}
 
-		return mb_substr( preg_replace( '/\s+/', ' ', $out ), 0, 380 );
+		foreach ( $body['output'] as $item ) {
+			if ( isset( $item['type'] ) && $item['type'] === 'message' ) {
+				foreach ( $item['content'] as $c ) {
+					if ( isset( $c['text'] ) ) {
+						return mb_substr(
+							trim( preg_replace( '/\s+/', ' ', $c['text'] ) ),
+							0,
+							380
+						);
+					}
+				}
+			}
+		}
+
+		return 'Moderator is monitoring the discussion.';
 	}
 
 	/* =========================
@@ -233,21 +212,6 @@ class AdamBox_REST {
 		$key = $this->ctx_key( $post_id );
 		$ctx = get_transient( $key ) ?: array();
 
-		if ( $msg = $this->rate_limit( $post_id, $sid, $name ) ) {
-			$ctx[] = array(
-				'role'    => 'system',
-				'content' => $msg,
-				'time'    => time(),
-			);
-			set_transient( $key, $ctx, self::CONTEXT_TTL );
-
-			return $this->no_cache_response( array(
-				'error'   => $msg,
-				'context' => array_slice( $ctx, - self::MAX_JOIN_MESSAGES ),
-				'hash'    => md5( wp_json_encode( $ctx ) ),
-			), 429 );
-		}
-
 		$ctx[] = array(
 			'role'    => 'user',
 			'name'    => $name,
@@ -256,13 +220,11 @@ class AdamBox_REST {
 		);
 
 		if ( $this->should_moderate( $ctx, $text ) ) {
-			if ( $mod = $this->run_moderation( $ctx ) ) {
-				$ctx[] = array(
-					'role'    => 'system',
-					'content' => $mod,
-					'time'    => time(),
-				);
-			}
+			$ctx[] = array(
+				'role'    => 'system',
+				'content' => $this->run_moderation( $ctx ),
+				'time'    => time(),
+			);
 		}
 
 		$ctx = array_slice( $ctx, - self::MAX_STORE_MESSAGES );
