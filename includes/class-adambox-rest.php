@@ -17,9 +17,14 @@ class AdamBox_REST {
 	/* =========================
 	 * Rate limits
 	 * ========================= */
-	const MIN_INTERVAL = 3;   // seconds between messages
-	const WINDOW_TIME  = 60;  // rolling window (seconds)
-	const WINDOW_MAX   = 20;  // max messages per window
+	const MIN_INTERVAL = 3;
+	const WINDOW_TIME  = 60;
+	const WINDOW_MAX   = 20;
+
+	/* =========================
+	 * Tier-1 cooldown
+	 * ========================= */
+	const TIER1_COOLDOWN = 60; // seconds
 
 	/* =========================
 	 * OpenAI (used by Moderator)
@@ -60,24 +65,21 @@ class AdamBox_REST {
 		return 'adambox_ctx_' . absint( $post_id );
 	}
 
+	private function cooldown_key( $post_id, $sid ) {
+		return 'adambox_cd_' . absint( $post_id ) . '_' . substr( hash( 'sha256', $sid ), 0, 16 );
+	}
+
 	private function normalize( $str, $len ) {
 		$str = trim( wp_strip_all_tags( (string) $str ) );
 		$str = preg_replace( '/\s+/', ' ', $str );
 		return mb_substr( $str, 0, $len );
 	}
 
-	/**
-	 * Hash client IP for rate limiting
-	 * Uses filter_input() to satisfy WP Plugin Checker
-	 */
 	private function ip_hash() {
-
 		$ip = filter_input( INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING );
-
 		if ( empty( $ip ) ) {
 			$ip = '0.0.0.0';
 		}
-
 		return substr( hash( 'sha256', $ip ), 0, 16 );
 	}
 
@@ -95,6 +97,44 @@ class AdamBox_REST {
 		$resp->header( 'Pragma', 'no-cache' );
 		$resp->header( 'Expires', '0' );
 		return $resp;
+	}
+
+	/* =========================
+	 * Severity normalization (NEW)
+	 * ========================= */
+
+	private function normalize_severity( $severity ) {
+
+		$strict = AdamBox_Settings::moderation_strictness();
+
+		if ( $strict === 'high' ) {
+			return 'tier_1';
+		}
+
+		if ( $strict === 'medium' ) {
+			if ( $severity === 'tier_2' ) return 'tier_1';
+			if ( $severity === 'tier_3' ) return 'tier_2';
+		}
+
+		return $severity; // low = unchanged
+	}
+
+	/* =========================
+	 * Tier-1 placeholder
+	 * ========================= */
+
+	private function tier1_placeholder() {
+
+		$messages = array(
+			'🚨 Message removed — let’s keep this respectful.',
+			'🧼 That crossed the line and was removed.',
+			'🤖 AdamBox stepped in on that one.',
+			'🚧 Content blocked for community safety.',
+			'😬 Let’s rewind and try again.',
+			'🛑 That message wasn’t allowed here.',
+		);
+
+		return $messages[ array_rand( $messages ) ];
 	}
 
 	/* =========================
@@ -173,51 +213,83 @@ class AdamBox_REST {
 			return new WP_Error( 'bad', 'Invalid request.', array( 'status' => 400 ) );
 		}
 
+		$cd_key = $this->cooldown_key( $post_id, $sid );
+		if ( get_transient( $cd_key ) ) {
+			return $this->no_cache_response(
+				array( 'error' => 'Please wait a moment before posting again.' ),
+				429
+			);
+		}
+
 		$key = $this->ctx_key( $post_id );
 		$ctx = get_transient( $key );
 		if ( ! is_array( $ctx ) ) {
 			$ctx = array();
 		}
 
-		// Rate limit first
 		if ( $msg = $this->rate_limit( $post_id, $sid, $name ) ) {
-			return $this->no_cache_response( array(
-				'error'   => $msg,
-				'context' => array_slice( $ctx, - self::MAX_JOIN_MESSAGES ),
-				'hash'    => md5( wp_json_encode( $ctx ) ),
-			), 429 );
+			return $this->no_cache_response(
+				array(
+					'error'   => $msg,
+					'context' => array_slice( $ctx, - self::MAX_JOIN_MESSAGES ),
+					'hash'    => md5( wp_json_encode( $ctx ) ),
+				),
+				429
+			);
 		}
 
-		// Store user message
-		$ctx[] = array(
-			'role'    => 'user',
-			'name'    => $name,
-			'content' => $text,
-			'time'    => time(),
-		);
-
 		/* =========================
-		 * Moderation pipeline
+		 * Moderation decision
 		 * ========================= */
 
-		if ( class_exists( 'AdamBox_Keywords' ) && class_exists( 'AdamBox_Moderator' ) ) {
-
+		$severity = false;
+		if ( class_exists( 'AdamBox_Keywords' ) ) {
 			$severity = AdamBox_Keywords::analyze( $ctx, $text );
+		}
 
-			if ( $severity ) {
-				$mod = AdamBox_Moderator::handle( $ctx, $severity );
+		if ( $severity ) {
+			$severity = $this->normalize_severity( $severity );
+		}
 
-				if ( $mod ) {
-					$ctx[] = array(
-						'role'    => 'system',
-						'content' => $mod,
-						'time'    => time(),
-					);
-				}
+		if ( $severity === 'tier_1' ) {
+
+			$ctx[] = array(
+				'role'    => 'user',
+				'name'    => $name,
+				'content' => $this->tier1_placeholder(),
+				'time'    => time(),
+				'flagged' => true,
+			);
+
+			set_transient(
+				$cd_key,
+				time() + self::TIER1_COOLDOWN,
+				self::TIER1_COOLDOWN + 5
+			);
+
+		} else {
+
+			$ctx[] = array(
+				'role'    => 'user',
+				'name'    => $name,
+				'content' => $text,
+				'time'    => time(),
+			);
+		}
+
+		if ( $severity && class_exists( 'AdamBox_Moderator' ) ) {
+
+			$mod = AdamBox_Moderator::handle( $ctx, $severity );
+
+			if ( $mod ) {
+				$ctx[] = array(
+					'role'    => 'system',
+					'content' => $mod,
+					'time'    => time(),
+				);
 			}
 		}
 
-		// Save context
 		$ctx = array_slice( $ctx, - self::MAX_STORE_MESSAGES );
 		set_transient( $key, $ctx, self::CONTEXT_TTL );
 
