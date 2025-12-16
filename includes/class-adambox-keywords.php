@@ -10,7 +10,7 @@ class AdamBox_Keywords {
 		return array(
 
 			/* =========================
-			 * Tier 1: Critical – always escalate
+			 * Tier 1: Critical
 			 * ========================= */
 			'tier_1' => array(
 				// Self-harm
@@ -49,16 +49,17 @@ class AdamBox_Keywords {
 	/**
 	 * Analyze a message and return severity tier or false
 	 *
+	 * Detection only. Policy/strictness escalation happens elsewhere (REST).
+	 *
 	 * @return string|false
 	 */
 	public static function analyze( $ctx, $text ) {
 
-		$txt    = strtolower( $text );
-		$lists  = self::lists();
-		$strict = AdamBox_Settings::moderation_strictness();
+		$txt   = strtolower( $text );
+		$lists = self::lists();
 
 		/* =========================
-		 * Tier 1: Always escalate
+		 * Tier 1: Always detect
 		 * ========================= */
 		foreach ( $lists['tier_1'] as $term ) {
 			if ( strpos( $txt, $term ) !== false ) {
@@ -67,52 +68,45 @@ class AdamBox_Keywords {
 		}
 
 		/* =========================
-		 * Tier 2: Medium+ strictness
+		 * Tier 2: Always detect
 		 * ========================= */
-		if ( $strict !== 'low' ) {
-
-			// Literal Tier 2
-			foreach ( $lists['tier_2'] as $term ) {
-				if ( strpos( $txt, $term ) !== false ) {
-					return 'tier_2';
-				}
-			}
-
-			// Regex: compound profanity (fuck off, fuckface, fuck head, etc.)
-			if ( preg_match(
-				'/\bfuck(\s+(off|you|him|her|them)|[\s\-]?(face|head|wad|hole|bag))\b/i',
-				$text
-			) ) {
-				return 'tier_2';
-			}
-
-			// Regex: shit-based insults
-			if ( preg_match(
-				'/\bshit(\s+(head|face|bag)|[\s\-]?(head|face|bag))\b/i',
-				$text
-			) ) {
+		foreach ( $lists['tier_2'] as $term ) {
+			if ( strpos( $txt, $term ) !== false ) {
 				return 'tier_2';
 			}
 		}
 
+		// Regex: compound profanity (fuck off, fuckface, fuck head, etc.)
+		if ( preg_match(
+			'/\bfuck(\s+(off|you|him|her|them)|[\s\-]?(face|head|wad|hole|bag))\b/i',
+			$text
+		) ) {
+			return 'tier_2';
+		}
+
+		// Regex: shit-based insults
+		if ( preg_match(
+			'/\bshit(\s+(head|face|bag)|[\s\-]?(head|face|bag))\b/i',
+			$text
+		) ) {
+			return 'tier_2';
+		}
+
 		/* =========================
-		 * Tier 3: High strictness only
+		 * Tier 3: Always detect
 		 * ========================= */
-		if ( $strict === 'high' ) {
-
-			foreach ( $lists['tier_3'] as $term ) {
-				if ( strpos( $txt, $term ) !== false ) {
-					return 'tier_3';
-				}
-			}
-
-			// Mild directives (go to hell, screw you)
-			if ( preg_match(
-				'/\b(go to hell|screw you|piss off)\b/i',
-				$text
-			) ) {
+		foreach ( $lists['tier_3'] as $term ) {
+			if ( strpos( $txt, $term ) !== false ) {
 				return 'tier_3';
 			}
+		}
+
+		// Mild directives (go to hell, screw you)
+		if ( preg_match(
+			'/\b(go to hell|screw you|piss off)\b/i',
+			$text
+		) ) {
+			return 'tier_3';
 		}
 
 		/* =========================
@@ -123,11 +117,9 @@ class AdamBox_Keywords {
 
 		foreach ( $recent as $m ) {
 			if (
+				isset( $m['role'], $m['content'] ) &&
 				$m['role'] === 'user' &&
-				preg_match(
-					'/(bitch|idiot|moron|asshole|loser|fuck)/i',
-					$m['content']
-				)
+				preg_match( '/(bitch|idiot|moron|asshole|loser|fuck)/i', $m['content'] )
 			) {
 				$hits++;
 			}
