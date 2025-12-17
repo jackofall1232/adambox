@@ -100,7 +100,10 @@ class AdamBox_REST {
 	}
 
 	/* =========================
-	 * Severity normalization (NEW)
+	 * Severity normalization
+	 * High mode: All tiers escalate to tier_1 (zero tolerance)
+	 * Medium mode: tier_2→tier_1, tier_3→tier_2
+	 * Low mode: unchanged
 	 * ========================= */
 
 	private function normalize_severity( $severity ) {
@@ -108,6 +111,7 @@ class AdamBox_REST {
 		$strict = AdamBox_Settings::moderation_strictness();
 
 		if ( $strict === 'high' ) {
+			// Zero tolerance - everything is tier_1
 			return 'tier_1';
 		}
 
@@ -120,18 +124,62 @@ class AdamBox_REST {
 	}
 
 	/* =========================
+	 * Check for 3 tier-3 messages in a row
+	 * (from any users - conversation tone deteriorating)
+	 * ========================= */
+
+	private function has_tier3_pattern( $ctx ) {
+		if ( empty( $ctx ) || ! is_array( $ctx ) ) {
+			return false;
+		}
+
+		// Get last 3 user messages
+		$recent = array();
+		foreach ( array_reverse( $ctx ) as $m ) {
+			if ( isset( $m['role'] ) && $m['role'] === 'user' && ! empty( $m['content'] ) ) {
+				$recent[] = $m['content'];
+				if ( count( $recent ) >= 3 ) {
+					break;
+				}
+			}
+		}
+
+		// Need at least 3 messages to check
+		if ( count( $recent ) < 3 ) {
+			return false;
+		}
+
+		// Check if all 3 contain tier_3 keywords
+		// Use empty context to prevent pattern escalation - we only want literal tier_3 detection
+		$tier3_count = 0;
+
+		if ( class_exists( 'AdamBox_Keywords' ) ) {
+			foreach ( $recent as $msg ) {
+				$detected = AdamBox_Keywords::analyze( array(), $msg );
+				// Only count explicit tier_3 returns (no escalation)
+				if ( $detected === 'tier_3' ) {
+					$tier3_count++;
+				}
+			}
+		}
+
+		// 3 tier_3 messages in a row = pattern
+		return ( $tier3_count >= 3 );
+	}
+
+	/* =========================
 	 * Tier-1 placeholder
 	 * ========================= */
 
 	private function tier1_placeholder() {
 
 		$messages = array(
-			'🚨 Message removed — let’s keep this respectful.',
-			'🧼 That crossed the line and was removed.',
-			'🤖 AdamBox stepped in on that one.',
-			'🚧 Content blocked for community safety.',
-			'😬 Let’s rewind and try again.',
-			'🛑 That message wasn’t allowed here.',
+			"🚨 Message removed — let's keep this respectful.",
+			"🧼 That crossed the line and was removed.",
+			"🤖 AdamBox stepped in on that one.",
+			"🚧 Content blocked for community safety.",
+			"😬 Let's rewind and try again.",
+			"🛑 That message wasn't allowed here.",
 		);
 
 		return $messages[ array_rand( $messages ) ];
@@ -247,10 +295,12 @@ class AdamBox_REST {
 			$severity = AdamBox_Keywords::analyze( $ctx, $text );
 		}
 
+		// Normalize severity based on strictness (high mode escalates everything)
 		if ( $severity ) {
 			$severity = $this->normalize_severity( $severity );
 		}
 
+		// Tier 1: Auto-block + cooldown
 		if ( $severity === 'tier_1' ) {
 
 			$ctx[] = array(
@@ -269,6 +319,7 @@ class AdamBox_REST {
 
 		} else {
 
+			// Add message to context
 			$ctx[] = array(
 				'role'    => 'user',
 				'name'    => $name,
@@ -277,7 +328,39 @@ class AdamBox_REST {
 			);
 		}
 
-		if ( $severity && class_exists( 'AdamBox_Moderator' ) ) {
+		/* =========================
+		 * Tier 3 Intent-Based Handling
+		 * 
+		 * Low: Only moderate if 3 tier-3 messages in a row (conversation deteriorating)
+		 * Medium: Always send tier-3 to AI for intent judgment
+		 * High: Already escalated to tier_1 above (zero tolerance)
+		 * ========================= */
+
+		$should_moderate = false;
+
+		if ( $severity === 'tier_3' ) {
+			$strict = AdamBox_Settings::moderation_strictness();
+
+			if ( $strict === 'low' ) {
+				// Low: Only if 3 tier-3 messages in a row (any users)
+				$should_moderate = $this->has_tier3_pattern( $ctx );
+
+			} elseif ( $strict === 'medium' ) {
+				// Medium: Always send to AI for intent check
+				$should_moderate = true;
+
+			} else {
+				// High: Already handled above (escalated to tier_1)
+				$should_moderate = false;
+			}
+
+		} elseif ( $severity === 'tier_2' ) {
+			// Tier 2: Always moderate
+			$should_moderate = true;
+		}
+
+		// Send to AI moderator if appropriate
+		if ( $severity && $should_moderate && class_exists( 'AdamBox_Moderator' ) ) {
 
 			$mod = AdamBox_Moderator::handle( $ctx, $severity );
 
