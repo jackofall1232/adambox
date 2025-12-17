@@ -5,7 +5,7 @@ Tags: ai moderation, chat moderation, content moderation, ai safety, community t
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -13,7 +13,7 @@ Lightweight AI-powered moderation box for WordPress that provides calm, neutral 
 
 == Description ==
 
-Lightweight AI-powered moderation for WordPress conversations with calm, neutral oversight and no user tracking.
+Lightweight AI-powered moderation for WordPress conversations with calm, neutral oversight and no user tracking.  
 It is an **AI moderator**, not a participant.
 
 ### Core Principles
@@ -28,11 +28,11 @@ It is an **AI moderator**, not a participant.
 
 ### What AdamBox Does
 
-- Renders a lightweight chat box via shortcode
+- Renders a lightweight moderation-enabled conversation box via shortcode
 - Supports multiple visitors chatting together on the same page
-- Requires session-based display names for clarity (no accounts)
-- Observes recent messages for moderation context only
-- Intervenes when moderation is needed
+- Uses session-based display names (no accounts required)
+- Observes recent messages temporarily for moderation context only
+- Intervenes calmly when moderation is needed
 - Uses WordPress REST API and vanilla JavaScript only
 
 ### What AdamBox Does *Not* Do
@@ -132,6 +132,15 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Changelog ==
 
+= 1.1.0 =
+* Added tier-based moderation strictness with meaningful behavioral differences
+* Implemented automatic cooldowns for severe (Tier 1) violations
+* Added placeholder replacement for removed messages to prevent escalation
+* Improved intent-based handling for low-level (Tier 3) hostility
+* Enhanced AI prompts with better context awareness and pattern detection
+* Strengthened abuse prevention while preserving low-friction conversation flow
+* Internal moderation logic refactored for future Pro feature expansion
+
 = 1.0.0 =
 * Initial stable release
 * Hardened moderation pipeline with keyword tiers and optional AI oversight
@@ -163,8 +172,9 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-This is the first stable release of AdamBox. No action required beyond updating.
+= 1.1.0 =
+This update improves moderation behavior and safety controls.  
+No configuration changes are required.
 
 == License ==
 
