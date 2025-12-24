@@ -13,20 +13,22 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 // Safety: ensure option name matches settings class.
-$option_name = 'adambox_settings';
+$adambox_option_name = 'adambox_settings';
 
 // Remove plugin options.
-delete_option( $option_name );
+delete_option( $adambox_option_name );
 
 // Multisite support: remove option from all sites if network activated.
 if ( is_multisite() ) {
 	global $wpdb;
 
-	$blog_ids = $wpdb->get_col( "SELECT blog_id FROM {$wpdb->blogs}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$adambox_blog_ids = $wpdb->get_col(
+		"SELECT blog_id FROM {$wpdb->blogs}"
+	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 
-	foreach ( $blog_ids as $blog_id ) {
-		switch_to_blog( (int) $blog_id );
-		delete_option( $option_name );
+	foreach ( $adambox_blog_ids as $adambox_blog_id ) {
+		switch_to_blog( (int) $adambox_blog_id );
+		delete_option( $adambox_option_name );
 		restore_current_blog();
 	}
 }
