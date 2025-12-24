@@ -45,16 +45,22 @@ class AdamBox_REST {
 	public function routes() {
 
 		register_rest_route( self::NAMESPACE, '/context', array(
-			'methods'             => 'GET',
-			'callback'            => array( $this, 'get_context' ),
-			'permission_callback' => '__return_true',
-		) );
+	'methods'             => 'GET',
+	'callback'            => array( $this, 'get_context' ),
+	'permission_callback' => function () {
+		// Intentionally public: shared, non-authenticated conversation context
+		return true;
+	},
+) );
 
-		register_rest_route( self::NAMESPACE, '/message', array(
-			'methods'             => 'POST',
-			'callback'            => array( $this, 'post_message' ),
-			'permission_callback' => '__return_true',
-		) );
+register_rest_route( self::NAMESPACE, '/message', array(
+	'methods'             => 'POST',
+	'callback'            => array( $this, 'post_message' ),
+	'permission_callback' => function () {
+		// Intentionally public: message submission with internal rate limiting
+		return true;
+	},
+) );
 	}
 
 	/* =========================
