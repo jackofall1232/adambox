@@ -2,8 +2,8 @@
 /**
  * Uninstall cleanup for AdamBox
  *
- * This file runs when the plugin is deleted via WordPress admin.
- * It removes plugin options only. No user data is stored.
+ * Runs when the plugin is deleted via WordPress admin.
+ * Removes plugin options only. No user data is stored.
  *
  * @package AdamBox
  */
@@ -12,21 +12,23 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-// Safety: ensure option name matches settings class.
+// Option name (prefixed).
 $adambox_option_name = 'adambox_settings';
 
-// Remove plugin options.
+// Remove option from current site.
 delete_option( $adambox_option_name );
 
-// Multisite support: remove option from all sites if network activated.
-if ( is_multisite() ) {
-	global $wpdb;
+// Multisite: remove option from all sites.
+if ( is_multisite() && function_exists( 'get_sites' ) ) {
 
-	$adambox_blog_ids = $wpdb->get_col(
-		"SELECT blog_id FROM {$wpdb->blogs}"
-	); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	$adambox_sites = get_sites(
+		array(
+			'number' => 0,
+			'fields' => 'ids',
+		)
+	);
 
-	foreach ( $adambox_blog_ids as $adambox_blog_id ) {
+	foreach ( $adambox_sites as $adambox_blog_id ) {
 		switch_to_blog( (int) $adambox_blog_id );
 		delete_option( $adambox_option_name );
 		restore_current_blog();
