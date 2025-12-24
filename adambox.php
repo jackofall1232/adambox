@@ -3,7 +3,7 @@
  * Plugin Name: AdamBox
  * Plugin URI: https://github.com/jackofall1232/adambox
  * Description: Lightweight AI-powered moderation box for WordPress.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Ask Adam
  * Author URI: https://github.com/jackofall1232
  * License: GPL v3
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin constants
  */
-define( 'ADAMBOX_VERSION', '1.1.1' );
+define( 'ADAMBOX_VERSION', '1.1.2' );
 define( 'ADAMBOX_PLUGIN_FILE', __FILE__ );
 define( 'ADAMBOX_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADAMBOX_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
