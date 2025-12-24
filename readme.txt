@@ -5,7 +5,7 @@ Tags: ai moderation, chat moderation, content moderation, ai safety, community t
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -111,13 +111,13 @@ Data sent:
 
 No data is stored by AdamBox after processing.
 
-Service provider:
+Service provider:  
 OpenAI, Inc.
 
-Terms of Service:
+Terms of Service:  
 https://openai.com/policies/terms-of-use
 
-Privacy Policy:
+Privacy Policy:  
 https://openai.com/policies/privacy-policy
 
 == Frequently Asked Questions ==
@@ -153,6 +153,11 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 2. AdamBox settings panel in WordPress admin  
 
 == Changelog ==
+
+= 1.1.3 =
+* Replaced direct database queries in uninstall routine with WordPress multisite APIs
+* Removed remaining Plugin Check warnings
+* No functional behavior changes
 
 = 1.1.2 =
 * Fixed uninstall routine to comply with WordPress coding standards
@@ -204,8 +209,8 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Upgrade Notice ==
 
-= 1.1.2 =
-Code quality and standards compliance update only.  
+= 1.1.3 =
+Standards compliance update only.  
 No configuration changes are required.
 
 == License ==
