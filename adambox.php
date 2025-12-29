@@ -2,7 +2,7 @@
 /**
  * Plugin Name: AdamBox
  * Plugin URI: https://github.com/jackofall1232/adambox
- * Description: Lightweight AI-powered moderation box for WordPress.
+ * Description: Lightweight AI-powered moderation chatbox for WordPress.
  * Version: 1.1.4
  * Author: Ask Adam
  * Author URI: https://github.com/jackofall1232
