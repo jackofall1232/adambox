@@ -9,30 +9,34 @@ Stable tag: 1.1.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Lightweight AI-powered moderation box for WordPress that provides calm, neutral AI oversight without tracking users or storing data.
+Lightweight live chat chatbox with AI-powered moderation for WordPress — calm, neutral oversight with no tracking or data storage.
 
 == Description ==
 
-Lightweight AI-powered moderation for WordPress conversations with calm, neutral oversight and no user tracking.  
-It is an **AI moderator**, not a participant.
+AdamBox is a **lightweight live chat chatbox with AI moderation** for WordPress.
+
+It provides calm, neutral AI oversight for on-page conversations — without tracking users, storing messages, or profiling visitors.
+
+AdamBox is an **AI moderator**, not a chatbot and not a participant.
 
 ### Core Principles
 
-- Clean and lean
-- WordPress-standards compliant
-- No user tracking
+- Clean and lean architecture
+- WordPress coding standards compliant
+- Privacy-first by design
+- No user tracking or profiling
 - No persistent message storage
-- No database tables
+- No custom database tables
 - No external JavaScript frameworks
 - Community-first and fully open source
 
 ### What AdamBox Does
 
-- Renders a lightweight moderation-enabled conversation box via shortcode
-- Supports multiple visitors chatting together on the same page
+- Renders a live, moderation-enabled chatbox via shortcode
+- Allows multiple visitors to chat together on the same page
 - Uses session-based display names (no accounts required)
-- Observes recent messages temporarily for moderation context only
-- Intervenes calmly when moderation is needed
+- Temporarily observes recent messages for moderation context only
+- Intervenes calmly and neutrally when moderation is needed
 - Uses WordPress REST API and vanilla JavaScript only
 
 ### What AdamBox Does *Not* Do
@@ -44,7 +48,7 @@ It is an **AI moderator**, not a participant.
 - No analytics or tracking scripts
 - No feature gating in the free version
 
-AdamBox is built for site owners who want **responsible AI oversight** without sacrificing privacy or control.
+AdamBox is built for site owners who want **responsible AI oversight** without sacrificing privacy, performance, or control.
 
 == Installation ==
 
@@ -55,7 +59,7 @@ AdamBox is built for site owners who want **responsible AI oversight** without s
 
 == Usage ==
 
-Insert the shortcode anywhere you want the moderation box to appear:
+Insert the shortcode anywhere you want the live chat chatbox to appear:
 
 `[adambox]`
 
@@ -149,10 +153,17 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Screenshots ==
 
-1. AdamBox moderation interface embedded on a page  
+1. AdamBox live chat moderation interface embedded on a page  
 2. AdamBox settings panel in WordPress admin  
 
 == Changelog ==
+
+= 1.1.4 =
+* Added missing WordPress.org banner asset size for full directory support
+* Cleaned up plugin distribution archive
+* Updated readme metadata and tags for improved discoverability
+* Removed unintended contributor attribution
+* No functional behavior changes
 
 = 1.1.3 =
 * Replaced direct database queries in uninstall routine with WordPress multisite APIs
@@ -209,8 +220,8 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Upgrade Notice ==
 
-= 1.1.3 =
-Standards compliance update only.  
+= 1.1.4 =
+Maintenance and presentation update.  
 No configuration changes are required.
 
 == License ==
