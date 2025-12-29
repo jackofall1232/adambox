@@ -1,5 +1,5 @@
 === AdamBox ===
-Contributors: jackofall1232, askadam
+Contributors: jackofall1232
 Donate link:
 Tags: chatbox, live chat, ai moderation, content moderation, chat moderation
 Requires at least: 6.0
