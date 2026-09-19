@@ -3,9 +3,9 @@ Contributors: jackofall1232
 Donate link:
 Tags: chatbox, live chat, ai moderation, content moderation, chat moderation
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -158,6 +158,10 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Changelog ==
 
+= 1.1.5 =
+* Confirmed compatibility with WordPress 7.1
+* Updated readme metadata and testing information
+
 = 1.1.4 =
 * Added missing WordPress.org banner asset size for full directory support
 * Cleaned up plugin distribution archive
@@ -220,8 +224,12 @@ AdamBox is fully functional as a free, open-source plugin licensed under GPL v3.
 
 == Upgrade Notice ==
 
+= 1.1.5 =
+Confirmed compatibility with WordPress 7.1.
+No configuration changes are required.
+
 = 1.1.4 =
-Maintenance and presentation update.  
+Maintenance and presentation update.
 No configuration changes are required.
 
 == License ==
